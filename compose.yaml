@@ -1,0 +1,10 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: connect4-postgres
+    environment:
+      POSTGRES_USER: ${CONNECT4_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${CONNECT4_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${CONNECT4_POSTGRES_DATABASE}
+    ports:
+      - "${CONNECT4_POSTGRES_PORT}:${CONNECT4_POSTGRES_PORT}"

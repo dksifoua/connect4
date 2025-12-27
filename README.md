@@ -1,2 +1,2 @@
-# connect4
-My implementation of the Game Connect4
+# Connect4
+My implementation of the Game Connect4.

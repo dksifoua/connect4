@@ -1,0 +1,16 @@
+{
+  "name": "connect4",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "postgres": "docker compose up -d",
+    "dev": "bun --env-file=.env run index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
