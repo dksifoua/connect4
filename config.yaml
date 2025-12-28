@@ -1,0 +1,16 @@
+server:
+  port: ${CONNECT4_LISTENING_PORT}
+
+database:
+  host: ${CONNECT4_DATABASE_HOST}
+  port: ${CONNECT4_DATABASE_PORT}
+  name: ${CONNECT4_DATABASE_NAME}
+  user: ${CONNECT4_DATABASE_USER}
+  password: ${CONNECT4_DATABASE_PASSWORD}
+
+jwt:
+  issuer: ${CONNECT4_JWT_ISSUER:-connect4}
+  audience: ${CONNECT4_JWT_AUDIENCE:-connect4-clients}
+  algorithm: ${CONNECT4_JWT_ALGORITHM:-HS256}
+  expiresIn: ${CONNECT4_JWT_EXPIRES_IN}
+  secret: ${CONNECT4_JWT_SECRET}

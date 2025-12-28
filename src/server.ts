@@ -1,14 +1,16 @@
 import type { ErrorLike, MaybePromise } from "bun"
-import { container } from "@/lib/ioc/container.ts"
-import AuthHandler from "@/handler/auth.handler.ts"
-import driverDatabase from "@/database/driver.database.ts"
+import { container } from "@/lib/ioc/container"
+import AuthHandler from "@/handler/auth.handler"
+import driverDatabase from "@/database/driver.database"
+import config from "@/config"
 
+container.register("jwtConfig", () => config.jwt)
 container.register("database", () => driverDatabase)
 
 const authHandler = container.resolve(AuthHandler)
 
 const server = Bun.serve({
-    port: process.env.CONNECT4_LISTENING_PORT,
+    port: config.server.port,
     routes: {
         "/": () => new Response('Bun!'),
         "/login": {
@@ -25,7 +27,11 @@ const server = Bun.serve({
         switch (error.name) {
             case "ZodError":
             case "UserAlreadyExistsError":
+            case "UserNotFoundError":
+            case "UserCredentialsError":
                 return new Response(`Validation Error: ${error.message}`, { status: 400 })
+            case "UserAlreadyConnectedError":
+                return new Response(`Forbidden Error: ${error.message}`, { status: 403 })
             default:
                 return new Response(`Error: ${error.message}`, { status: 500 })
         }

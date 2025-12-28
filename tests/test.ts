@@ -1,6 +1,8 @@
-import { Inject, Injectable } from "@/lib/ioc/dependency.ts"
-import { container } from "@/lib/ioc/container.ts"
+import config from "../config.yaml"
 
+console.log(config)
+
+/*
 @Injectable()
 class ConfigService {
 
@@ -29,3 +31,4 @@ class LibService {
 const libService = container.resolve(LibService)
 
 console.log(libService.getConfig())
+ */

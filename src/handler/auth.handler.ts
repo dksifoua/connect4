@@ -22,9 +22,10 @@ export default class AuthHandler {
 
     public async login(request: BunRequest): Promise<Response> {
         const { username, password } = z.parse(AuthRequestBody, await request.body?.json())
-        console.log({ username, password })
 
-        return new Response("Login successful.", { status: 200 })
+        const { token } = await this.userService.login(username, password)
+
+        return new Response(JSON.stringify({ token }), { status: 200 })
     }
 
     public async register(request: BunRequest): Promise<Response> {
