@@ -2,8 +2,14 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@/lib/*": ["lib/*"],
       "@/*": ["src/*"]
     },
+
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "declaration": true,
 
     // Environment setup & latest features
     "lib": ["ESNext"],

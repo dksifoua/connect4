@@ -1,11 +1,13 @@
 {
   "name": "connect4",
-  "module": "index.ts",
+  "module": "src/server.ts",
   "type": "module",
   "private": true,
   "scripts": {
-    "postgres": "docker compose up -d",
-    "dev": "bun --watch --env-file=.env run index.ts"
+    "db:up": "docker compose up -d",
+    "db:generate": "bunx drizzle-kit generate",
+    "db:migrate": "bunx drizzle-kit migrate",
+    "dev": "bun --watch --env-file=.env run src/server.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -19,7 +21,9 @@
   "dependencies": {
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
+    "mysql2": "^3.16.0",
     "pg": "^8.16.3",
+    "reflect-metadata": "^0.2.2",
     "zod": "^4.2.1"
   }
 }
