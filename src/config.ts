@@ -28,6 +28,4 @@ export interface Config {
     }
 }
 
-const interpolatedConfig = interpolate(config) as Config
-
-export default interpolatedConfig
+export default interpolate(config) as Config
