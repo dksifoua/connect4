@@ -8,6 +8,7 @@ import { Pool } from "pg"
 import { drizzle } from "drizzle-orm/node-postgres"
 import config from "@/config"
 import packageJson from "../package.json"
+import type { NodePgDatabase } from "drizzle-orm/node-postgres/driver"
 
 container.register(JsonWebToken, () => new JsonWebToken(config.jwt.config))
 container.register(AuthenticationMiddleware, AuthenticationMiddleware)
@@ -19,7 +20,9 @@ container.register("database", () => {
 })
 container.register(RedisClient, () => {
     const { host, port, password } = config.cache
-    return new RedisClient(`redis://default:${password}@${host}:${port}`)
+    const redisClient = new RedisClient(`redis://default:${password}@${host}:${port}`)
+    redisClient.connect().then()
+    return redisClient
 })
 
 container.resolve(AuthenticationMiddleware)
@@ -64,6 +67,24 @@ const server = Bun.serve({
                 return new Response(`Error: ${error.message}`, { status: 500 })
         }
     }
-});
+})
 
-console.log(`Listening on ${server.url}`);
+console.log(`Listening on ${server.url}`)
+
+process.on("SIGINT", async (): Promise<void> => {
+    console.log("\nReceived SIGINT, shutting down gracefully...")
+
+    const database = container.resolve("database") as NodePgDatabase & { $client: Pool }
+    await database.$client.end()
+    console.log("Closing database connection...")
+
+    const redis = container.resolve(RedisClient)
+    redis.close()
+    console.log("Closing Redis connection...")
+
+    container.dispose()
+    console.log("Cleaning up IoC container...")
+
+    console.log("Done.")
+    process.exit(0)
+})

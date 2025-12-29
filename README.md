@@ -10,7 +10,7 @@ My implementation of the Connect4 Game.
 
 ## Tech Stack
 
-[![Stack](https://skillicons.dev/icons?i=bun,ts,docker,postgres,redis,drizzle,jwt)](https://github.com/dksifoua/connect4)
+    [![Stack](https://skillicons.dev/icons?i=ts,bun,docker,postgres,redis,drizzle,jwt)](https://github.com/dksifoua/connect4)
 
 ## Authors
 

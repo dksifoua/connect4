@@ -12,6 +12,11 @@ export class Container {
         this.instances = new Map<Token, any>()
     }
 
+    public dispose(): void {
+        this.registry.clear()
+        this.instances.clear()
+    }
+
     public register<T>(token: Token<T>, provider: Provider<T>): void {
         this.registry.set(token, { token, provider })
     }
