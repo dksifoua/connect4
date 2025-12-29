@@ -3,27 +3,30 @@ import config from "../config.yaml" with { type: "yaml" }
 
 export interface Config {
     server: {
-        port: number;
-    };
+        port: number
+    }
     database: {
-        host: string;
-        port: number;
-        name: string;
-        user: string;
-        password: string;
-    };
+        host: string
+        port: number
+        name: string
+        user: string
+        password: string
+    }
     jwt: {
-        secret: string;
+        secret: string
         config: {
-            issuer: string;
-            audience: string;
-            algorithm: string;
-            expiresIn: number;
-        };
-    };
+            issuer: string
+            audience: string
+            algorithm: string
+            expiresIn: number
+        }
+    }
+    cache: {
+        host: string
+        port: number
+        password: string
+    }
 }
-
-export type JwtConfig = Config["jwt"]["config"]
 
 const interpolatedConfig = interpolate(config) as Config
 

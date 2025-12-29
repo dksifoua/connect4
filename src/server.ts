@@ -1,17 +1,26 @@
-import type { ErrorLike, MaybePromise } from "bun"
+import { type ErrorLike, type MaybePromise, RedisClient } from "bun"
 import { container } from "@/lib/ioc/container"
 import { AuthHandler } from "@/handler/auth.handler"
-import driverDatabase from "@/database/driver.database"
-import config from "@/config"
 import { UserHandler } from "@/handler/user.handler"
 import { JsonWebToken } from "@/lib/jwt"
 import { AuthenticationMiddleware } from "@/middleware/authentication.middleware"
+import { Pool } from "pg"
+import { drizzle } from "drizzle-orm/node-postgres"
+import config from "@/config"
 import packageJson from "../package.json"
 
 container.register(JsonWebToken, () => new JsonWebToken(config.jwt.config))
 container.register(AuthenticationMiddleware, AuthenticationMiddleware)
 container.register("secret", () => config.jwt.secret)
-container.register("database", () => driverDatabase)
+container.register("database", () => {
+    const { host, port, name, user, password } = config.database
+    const pool = new Pool({ host, port, database: name, user, password })
+    return drizzle({ client: pool })
+})
+container.register(RedisClient, () => {
+    const { host, port, password } = config.cache
+    return new RedisClient(`redis://default:${password}@${host}:${port}`)
+})
 
 container.resolve(AuthenticationMiddleware)
 const authHandler = container.resolve(AuthHandler)

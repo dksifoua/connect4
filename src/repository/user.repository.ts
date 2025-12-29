@@ -4,7 +4,6 @@ import type { User } from "@/domain.ts"
 import { Inject, Injectable } from "@/lib/ioc/dependency.ts"
 import type { NodePgDatabase } from "drizzle-orm/node-postgres/driver"
 import type { Pool } from "pg"
-import driverDatabase from "@/database/driver.database.ts"
 import type { Nullable } from "@/utils/types"
 
 @Injectable()
@@ -13,7 +12,7 @@ export class UserRepository {
     private readonly database: NodePgDatabase & { $client: Pool }
 
     constructor(@Inject("database") database: NodePgDatabase & { $client: Pool }) {
-        this.database = driverDatabase
+        this.database = database
     }
 
     public async exists(username: string): Promise<boolean> {

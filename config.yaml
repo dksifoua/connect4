@@ -15,3 +15,8 @@ jwt:
     audience: ${CONNECT4_JWT_AUDIENCE:-io:dksifoua:connect4}
     algorithm: ${CONNECT4_JWT_ALGORITHM:-HS256}
     expiresIn: ${CONNECT4_JWT_EXPIRES_IN}
+
+cache:
+  host: ${CONNECT4_CACHE_HOST}
+  port: ${CONNECT4_CACHE_PORT}
+  password: ${CONNECT4_CACHE_PASSWORD}

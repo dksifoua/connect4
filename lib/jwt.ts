@@ -34,4 +34,8 @@ export class JsonWebToken {
     public async verify(token: string, secret: string): Promise<jose.JWTVerifyResult> {
         return jose.jwtVerify(token, this.encoder.encode(secret))
     }
+
+    public getExpirationTime(): number {
+        return this.configuration.expiresIn
+    }
 }

@@ -4,7 +4,7 @@ import { UserAlreadyConnectedError, UserAlreadyExistsError, UserCredentialsError
 import type { User } from "@/domain"
 import type { Nullable } from "@/utils/types"
 import { JsonWebToken } from "@/lib/jwt"
-import type { JWTPayload } from "jose"
+import { RedisClient } from "bun"
 
 @Injectable()
 export class UserService {
@@ -12,15 +12,18 @@ export class UserService {
     private readonly userRepository: UserRepository
     private readonly jsonWebToken: JsonWebToken
     private readonly secret: string
+    private readonly redis: RedisClient
 
-    private connectedUsers: Map<string, string>
-
-    constructor(userRepository: UserRepository, jsonWebToken: JsonWebToken, @Inject("secret") secret: string) {
+    constructor(
+        userRepository: UserRepository,
+        jsonWebToken: JsonWebToken,
+        @Inject("secret") secret: string,
+        redis: RedisClient
+    ) {
         this.userRepository = userRepository
         this.jsonWebToken = jsonWebToken
         this.secret = secret
-
-        this.connectedUsers = new Map()
+        this.redis = redis
     }
 
     public async register(username: string, password: string): Promise<{ userId: number }> {
@@ -33,7 +36,7 @@ export class UserService {
     }
 
     public async login(username: string, password: string): Promise<{ token: string }> {
-        if (this.connectedUsers.has(username)) {
+        if (await this.redis.exists(username)) {
             throw new UserAlreadyConnectedError(`User [${username}] already connected!`)
         }
 
@@ -46,9 +49,9 @@ export class UserService {
             throw new UserCredentialsError(`Invalid password for user [${username}]!`)
         }
 
-        const token = await this.jsonWebToken.sign(username, this.secret)
+        const token: string = await this.jsonWebToken.sign(username, this.secret)
 
-        this.connectedUsers.set(username, token)
+        await this.redis.set(username, token, "EX", this.jsonWebToken.getExpirationTime())
 
         return { token }
     }

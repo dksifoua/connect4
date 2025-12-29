@@ -1,10 +1,17 @@
 services:
-  postgres:
+  database:
     image: postgres:latest
-    container_name: connect4-postgres
+    container_name: connect4-database
     environment:
-      POSTGRES_USER: ${CONNECT4_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${CONNECT4_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${CONNECT4_POSTGRES_DATABASE}
+      POSTGRES_USER: ${CONNECT4_DATABASE_USER}
+      POSTGRES_PASSWORD: ${CONNECT4_DATABASE_PASSWORD}
+      POSTGRES_DB: ${CONNECT4_DATABASE_NAME}
     ports:
-      - "${CONNECT4_POSTGRES_PORT}:${CONNECT4_POSTGRES_PORT}"
+      - "${CONNECT4_DATABASE_PORT}:${CONNECT4_DATABASE_PORT}"
+
+  cache:
+    image: redis:latest
+    container_name: connect4-cache
+    command: redis-server --requirepass ${CONNECT4_CACHE_PASSWORD} --save 60 1
+    ports:
+      - "${CONNECT4_CACHE_PORT}:${CONNECT4_CACHE_PORT}"
