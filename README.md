@@ -1,4 +1,5 @@
 # Connect4
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/dksifoua/connect4/ci.yaml)
 ![GitHub package.json version](https://img.shields.io/github/package-json/v/dksifoua/connect4)
 ![GitHub repo size](https://img.shields.io/github/repo-size/dksifoua/connect4)
 ![GitHub License](https://img.shields.io/github/license/dksifoua/connect4)
@@ -10,7 +11,7 @@ My implementation of the Connect4 Game.
 
 ## Tech Stack
 
-    [![Stack](https://skillicons.dev/icons?i=ts,bun,docker,postgres,redis,drizzle,jwt)](https://github.com/dksifoua/connect4)
+![Stack](https://skillicons.dev/icons?i=ts,bun,docker,postgres,redis,githubactions,drizzle,jwt)
 
 ## Authors
 

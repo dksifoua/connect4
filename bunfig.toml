@@ -1,0 +1,14 @@
+[test]
+root = "tests"
+
+smol = true
+timeout = 2000
+
+coverage = true
+coverageDir = "./coverage"
+coverageReporter = ["text", "lcov"]
+coverageSkipTestFiles = true
+
+concurrentTestGlob = "**/*.test.ts"
+
+randomize = true
