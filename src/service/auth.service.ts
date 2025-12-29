@@ -1,25 +1,24 @@
 import { Inject, Injectable } from "@/lib/ioc/dependency"
-import UserRepository from "@/repository/user.repository"
+import { UserRepository } from "@/repository/user.repository"
 import { UserAlreadyConnectedError, UserAlreadyExistsError, UserCredentialsError, UserNotFoundError } from "@/error"
 import type { User } from "@/domain"
 import type { Nullable } from "@/utils/types"
-import JsonWebToken from "@/lib/jwt"
-import type { JwtConfig } from "@/config"
+import { JsonWebToken } from "@/lib/jwt"
 import type { JWTPayload } from "jose"
 
 @Injectable()
-export default class UserService {
+export class UserService {
 
     private readonly userRepository: UserRepository
     private readonly jsonWebToken: JsonWebToken
-    private readonly jwtConfig: JwtConfig
+    private readonly secret: string
 
     private connectedUsers: Map<string, string>
 
-    constructor(userRepository: UserRepository, @Inject("jwtConfig") jwtConfig: JwtConfig) {
+    constructor(userRepository: UserRepository, jsonWebToken: JsonWebToken, @Inject("secret") secret: string) {
         this.userRepository = userRepository
-        this.jsonWebToken = new JsonWebToken()
-        this.jwtConfig = jwtConfig
+        this.jsonWebToken = jsonWebToken
+        this.secret = secret
 
         this.connectedUsers = new Map()
     }
@@ -47,16 +46,7 @@ export default class UserService {
             throw new UserCredentialsError(`Invalid password for user [${username}]!`)
         }
 
-        const jwtPayload: JWTPayload = {
-            iss: this.jwtConfig.issuer,
-            aud: this.jwtConfig.audience,
-            jti: crypto.randomUUID(),
-            exp: this.jwtConfig.expiresIn,
-            username
-        }
-        const { algorithm, secret } = this.jwtConfig
-
-        const token = await this.jsonWebToken.sign(jwtPayload, algorithm, secret)
+        const token = await this.jsonWebToken.sign(username, this.secret)
 
         this.connectedUsers.set(username, token)
 

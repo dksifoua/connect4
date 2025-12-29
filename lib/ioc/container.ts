@@ -1,13 +1,15 @@
 import "reflect-metadata"
-import type { Factory, Provider, Registration, Token } from "@/lib/ioc/types.ts"
+import type { Factory, Provider, Registration, Token } from "@/lib/ioc/types"
 
 
 export class Container {
 
     private registry: Map<Token, Registration>
+    private instances: Map<Token, any>
 
     public constructor() {
         this.registry = new Map<Token, Registration>()
+        this.instances = new Map<Token, any>()
     }
 
     public register<T>(token: Token<T>, provider: Provider<T>): void {
@@ -15,22 +17,22 @@ export class Container {
     }
 
     public resolve<T>(token: Token<T>): T {
-        if (!this.hasToken(token)) {
+        if (this.instances.has(token)) {
+            return this.instances.get(token) as T
+        }
+
+        if (!this.registry.has(token)) {
             const tokenName = typeof token === "function" ? token.name : String(token)
-            console.log(`Resolving token: ${tokenName}`)
-            throw new Error(`Token ${tokenName} not found in container`)
+            console.error(`Token ${tokenName} not found in container`)
+            process.exit(1)
         }
 
         const registration = this.registry.get(token)!
-        return this.createInstance<T>(registration)
-    }
+        const instance: T = this.createInstance<T>(registration)
 
-    public hasToken(token: Token): boolean {
-        return this.registry.has(token)
-    }
+        this.instances.set(token, instance)
 
-    public clear(): void {
-        this.registry.clear()
+        return instance
     }
 
     private createInstance<T>(registration: Registration<T>): T {
@@ -50,7 +52,8 @@ export class Container {
             return (provider as Factory<T>)(this)
         }
 
-        throw new Error(`Unsupported provider type for token ${String(registration.token)}`)
+        console.error(`Unsupported provider type for token ${String(registration.token)}`)
+        process.exit(1)
     }
 
     private isConstructor(func: any) {

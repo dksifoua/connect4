@@ -8,7 +8,7 @@ import driverDatabase from "@/database/driver.database.ts"
 import type { Nullable } from "@/utils/types"
 
 @Injectable()
-export default class UserRepository {
+export class UserRepository {
 
     private readonly database: NodePgDatabase & { $client: Pool }
 
@@ -17,7 +17,8 @@ export default class UserRepository {
     }
 
     public async exists(username: string): Promise<boolean> {
-        const users: User[] = await this.database.select()
+        const users: User[] = await this.database
+            .select()
             .from(usersTable)
             .where(eq(usersTable.username, username))
             .limit(1)
@@ -26,7 +27,8 @@ export default class UserRepository {
     }
 
     public async save(username: string, password: string): Promise<{ userId: number }> {
-        const rows = await this.database.insert(usersTable)
+        const rows = await this.database
+            .insert(usersTable)
             .values({ username, password })
             .returning({ userId: usersTable.id })
 
@@ -38,7 +40,8 @@ export default class UserRepository {
     }
 
     public async findByUsername(username: string): Promise<Nullable<User>> {
-        const users: User[] = await this.database.select()
+        const users: User[] = await this.database
+            .select()
             .from(usersTable)
             .where(eq(usersTable.username, username))
             .limit(1)
@@ -48,5 +51,11 @@ export default class UserRepository {
         }
 
         return users.length === 0 ? null : users[0]
+    }
+
+    public async findAll(): Promise<User[]> {
+        return this.database
+            .select()
+            .from(usersTable)
     }
 }

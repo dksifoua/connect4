@@ -1,7 +1,7 @@
 import type { BunRequest } from "bun"
 import { z } from "zod"
 import { Injectable } from "@/lib/ioc/dependency.ts"
-import UserService from "@/service/auth.service.ts"
+import { UserService } from "@/service/auth.service.ts"
 
 const AuthRequestBody = z.object({
     username: z.string(),
@@ -9,7 +9,7 @@ const AuthRequestBody = z.object({
 })
 
 @Injectable()
-export default class AuthHandler {
+export class AuthHandler {
 
     private readonly userService: UserService
 

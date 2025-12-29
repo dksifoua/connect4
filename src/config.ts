@@ -13,15 +13,17 @@ export interface Config {
         password: string;
     };
     jwt: {
-        issuer: string;
-        audience: string;
-        algorithm: string;
-        expiresIn: number;
         secret: string;
+        config: {
+            issuer: string;
+            audience: string;
+            algorithm: string;
+            expiresIn: number;
+        };
     };
 }
 
-export type JwtConfig = Config["jwt"]
+export type JwtConfig = Config["jwt"]["config"]
 
 const interpolatedConfig = interpolate(config) as Config
 

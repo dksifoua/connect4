@@ -1,16 +1,33 @@
 import * as jose from "jose"
+import type { JOSEError } from "jose/errors"
 
-export default class JsonWebToken {
+export type JsonWebTokenConfiguration = {
+    issuer: string
+    audience: string
+    algorithm: string
+    expiresIn: number
+}
+
+export class JsonWebToken {
     private readonly encoder: TextEncoder
+    private readonly configuration: JsonWebTokenConfiguration
 
-    constructor() {
+    constructor(configuration: JsonWebTokenConfiguration) {
         this.encoder = new TextEncoder()
+        this.configuration = configuration
     }
 
-    public async sign(payload: jose.JWTPayload, algorithm: string, secret: string): Promise<string> {
-        const jwt = new jose.SignJWT(payload)
+    public async sign(username: string, secret: string): Promise<string> {
+        const jwtId = crypto.randomUUID().toString()
+        const { algorithm, issuer, audience, expiresIn } = this.configuration
+        const jwt = new jose.SignJWT()
+            .setProtectedHeader({ alg: algorithm, typ: "JWT" })
             .setIssuedAt()
-            .setProtectedHeader({ alg: algorithm })
+            .setIssuer(issuer)
+            .setAudience(audience)
+            .setSubject(username)
+            .setJti(jwtId)
+            .setExpirationTime(`${expiresIn} seconds`)
 
         return jwt.sign(this.encoder.encode(secret))
     }
