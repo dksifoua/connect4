@@ -1,5 +1,9 @@
 {
   "name": "connect4",
+  "description": "A Bun-based Connect4 Game API.",
+  "version": "0.1.0",
+  "author": "Dimitri Sifoua <dimitri.sifoua@.com>",
+  "license": "Apache-2.0",
   "module": "src/server.ts",
   "type": "module",
   "private": true,

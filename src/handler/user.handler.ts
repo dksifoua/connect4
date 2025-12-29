@@ -1,7 +1,8 @@
-import { Injectable, Use } from "@/lib/ioc/dependency"
+import { Injectable } from "@/lib/ioc/dependency"
 import { UserService } from "@/service/user.service"
 import type { BunRequest } from "bun"
 import { AuthenticationMiddleware } from "@/middleware/authentication.middleware"
+import { Use } from "@/utils/decorator"
 
 @Injectable()
 export class UserHandler {

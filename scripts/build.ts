@@ -1,5 +1,7 @@
-const result = await Bun.build({
-    entrypoints: ["./src/app.ts"],
+import type { BuildOutput } from "bun"
+
+const result: BuildOutput = await Bun.build({
+    entrypoints: ["./src/server.ts"],
     outdir: "dist",
     target: "bun",
     format:"esm",
@@ -11,7 +13,7 @@ const result = await Bun.build({
 })
 
 if (result.success) {
-    console.log("Build successful");
+    console.log("Build successful")
 } else {
-    console.error("Build failed");
+    console.error("Build failed")
 }

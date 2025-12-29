@@ -6,6 +6,7 @@ import config from "@/config"
 import { UserHandler } from "@/handler/user.handler"
 import { JsonWebToken } from "@/lib/jwt"
 import { AuthenticationMiddleware } from "@/middleware/authentication.middleware"
+import packageJson from "../package.json"
 
 container.register(JsonWebToken, () => new JsonWebToken(config.jwt.config))
 container.register(AuthenticationMiddleware, AuthenticationMiddleware)
@@ -19,7 +20,11 @@ const userHandler = container.resolve(UserHandler)
 const server = Bun.serve({
     port: config.server.port,
     routes: {
-        "/": () => new Response('Bun!'),
+        "/": () => new Response("Hello from Connect4!"),
+        "/version": () => {
+            const { name, description, version, author, license } = packageJson
+            return new Response(JSON.stringify({ name, description, version, author, license }), { status: 200 })
+        },
         "/login": {
             POST: authHandler.login
         },
