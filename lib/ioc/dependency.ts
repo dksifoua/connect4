@@ -1,18 +1,41 @@
 import type { Token } from "@/lib/ioc/types.ts"
 import { container } from "@/lib/ioc/container.ts"
+import type { Constructor } from "@/lib/ioc/types.ts"
+import type { Middleware } from "@/middleware/middleware"
+import type { BunRequest } from "bun"
+import type { Nullable } from "@/utils/types"
 
 export function Injectable(token?: Token): ClassDecorator {
-    return (target: any) => {
-        const tokenToUse = token || target
+    return (target: any): void => {
+        const tokenToUse: any = token || target
         container.register(tokenToUse, target)
     }
 }
 
 export function Inject(token?: Token): ParameterDecorator {
-    return (target: Object, _propertyKey: (string | symbol | undefined), parameterIndex: number) => {
-        const injectTokens = Reflect.getMetadata("inject:tokens", target) || []
+    return (target: Object, _propertyKey: (string | symbol | undefined), parameterIndex: number): void => {
+        const injectTokens: any = Reflect.getMetadata("inject:tokens", target) || []
         injectTokens[parameterIndex] = token || Reflect.getMetadata("design:paramtypes", target)[parameterIndex]
 
         Reflect.defineMetadata("inject:tokens", injectTokens, target)
     }
+}
+
+export function Use(middlewareClass: Constructor): MethodDecorator {
+    return (_target: any, _propertyKey: (string | symbol), descriptor: PropertyDescriptor): PropertyDescriptor => {
+        const originalMethod: any = descriptor.value
+
+        descriptor.value = async function (request: BunRequest, ...args: any[]): Promise<any> {
+            const middleware = container.resolve(middlewareClass) as Middleware
+            const middlewareResponse: Nullable<Response> = await middleware.handle(request)
+
+            if (middlewareResponse) {
+                return middlewareResponse
+            }
+
+            return originalMethod.apply(this, [request, ...args])
+        }
+
+        return descriptor
+    };
 }

@@ -1,5 +1,4 @@
 import * as jose from "jose"
-import type { JOSEError } from "jose/errors"
 
 export type JsonWebTokenConfiguration = {
     issuer: string

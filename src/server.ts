@@ -5,11 +5,14 @@ import driverDatabase from "@/database/driver.database"
 import config from "@/config"
 import { UserHandler } from "@/handler/user.handler"
 import { JsonWebToken } from "@/lib/jwt"
+import { AuthenticationMiddleware } from "@/middleware/authentication.middleware"
 
 container.register(JsonWebToken, () => new JsonWebToken(config.jwt.config))
+container.register(AuthenticationMiddleware, AuthenticationMiddleware)
 container.register("secret", () => config.jwt.secret)
 container.register("database", () => driverDatabase)
 
+container.resolve(AuthenticationMiddleware)
 const authHandler = container.resolve(AuthHandler)
 const userHandler = container.resolve(UserHandler)
 
