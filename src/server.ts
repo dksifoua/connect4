@@ -1,5 +1,4 @@
 import { type ErrorLike, type MaybePromise, RedisClient } from "bun"
-import { container } from "@/lib/ioc/container"
 import { AuthHandler } from "@/handler/auth.handler"
 import { UserHandler } from "@/handler/user.handler"
 import { JsonWebToken } from "@/lib/jwt"
@@ -9,6 +8,7 @@ import { drizzle } from "drizzle-orm/node-postgres"
 import config from "@/config"
 import packageJson from "../package.json"
 import type { NodePgDatabase } from "drizzle-orm/node-postgres/driver"
+import { container } from "@/app"
 
 container.register(JsonWebToken, () => new JsonWebToken(config.jwt.config))
 container.register(AuthenticationMiddleware, AuthenticationMiddleware)

@@ -1,5 +1,6 @@
 # Connect4
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/dksifoua/connect4/ci.yaml)
+![Codecov](https://img.shields.io/codecov/c/github/dksifoua/connect4)
 ![GitHub package.json version](https://img.shields.io/github/package-json/v/dksifoua/connect4)
 ![GitHub repo size](https://img.shields.io/github/repo-size/dksifoua/connect4)
 ![GitHub License](https://img.shields.io/github/license/dksifoua/connect4)

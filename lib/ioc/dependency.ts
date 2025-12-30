@@ -1,10 +1,11 @@
 import type { Token } from "@/lib/ioc/types.ts"
-import { container } from "@/lib/ioc/container.ts"
 
 export function Injectable(token?: Token): ClassDecorator {
     return (target: any): void => {
-        const tokenToUse: any = token || target
-        container.register(tokenToUse, target)
+        Reflect.defineMetadata("ioc:injectable", true, target)
+        if (token) {
+            Reflect.defineMetadata("ioc:token", token, target)
+        }
     }
 }
 

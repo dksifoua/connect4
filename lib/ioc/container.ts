@@ -27,9 +27,13 @@ export class Container {
         }
 
         if (!this.registry.has(token)) {
-            const tokenName = typeof token === "function" ? token.name : String(token)
-            console.error(`Token ${tokenName} not found in container`)
-            process.exit(1)
+            if (typeof token === "function" && Reflect.hasMetadata("ioc:injectable", token)) {
+                this.register(token, token)
+            } else {
+                const tokenName = typeof token === "function" ? token.name : String(token)
+                console.error(`Token ${tokenName} not found in container`)
+                process.exit(1)
+            }
         }
 
         const registration = this.registry.get(token)!
@@ -65,5 +69,3 @@ export class Container {
         return func.prototype && func.prototype.constructor === func
     }
 }
-
-export const container = new Container()
