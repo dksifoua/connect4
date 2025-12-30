@@ -13,7 +13,7 @@ export class Container {
         this.registry = new Map<Token, Registration>()
         this.instances = new Map<Token, any>()
 
-        this.logging = new Logging(this.constructor.name, "debug")
+        this.logging = new Logging(this.constructor.name)
     }
 
     public dispose(): void {

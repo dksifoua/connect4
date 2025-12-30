@@ -1,11 +1,12 @@
-export type LoggingLevel = "debug" | "info" | "warn" | "error" | "fatal"
+export type LoggingLevel = "debug" | "info" | "warn" | "error" | "fatal" | "none"
 
 const priority: Record<LoggingLevel, number> = {
     debug: 0,
     info: 1,
     warn: 2,
     error: 3,
-    fatal: 4
+    fatal: 4,
+    none: 5
 }
 
 const colors: Record<LoggingLevel, string> = {
@@ -13,7 +14,8 @@ const colors: Record<LoggingLevel, string> = {
     info: Bun.color("green", "ansi")!,
     warn: Bun.color("yellow", "ansi")!,
     error: Bun.color("rgb(255, 130, 114)", "ansi")!,
-    fatal: Bun.color("magenta", "ansi")!
+    fatal: Bun.color("magenta", "ansi")!,
+    none: Bun.color("gray", "ansi")!
 }
 
 export class Logging {
@@ -21,9 +23,9 @@ export class Logging {
     private readonly name: string
     private readonly minLevel: LoggingLevel
 
-    public constructor(name: string, minLevel: LoggingLevel) {
+    public constructor(name: string, minLevel?: LoggingLevel) {
         this.name = name
-        this.minLevel = minLevel
+        this.minLevel = minLevel || "none"
     }
 
     public debug(message: string, ...args: any[]): void {
