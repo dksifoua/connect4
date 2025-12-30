@@ -1,15 +1,19 @@
 import "reflect-metadata"
 import type { Factory, Provider, Registration, Token } from "@/lib/ioc/types"
+import { Logging } from "@/lib/logging"
 
 
 export class Container {
 
     private registry: Map<Token, Registration>
     private instances: Map<Token, any>
+    private readonly logging: Logging
 
     public constructor() {
         this.registry = new Map<Token, Registration>()
         this.instances = new Map<Token, any>()
+
+        this.logging = new Logging(this.constructor.name, "debug")
     }
 
     public dispose(): void {
@@ -18,6 +22,8 @@ export class Container {
     }
 
     public register<T>(token: Token<T>, provider: Provider<T>): void {
+        const tokenName = typeof token === "function" ? token.name : String(token)
+        this.logging.debug(`Register ${tokenName} dependency in the IoC container`)
         this.registry.set(token, { token, provider })
     }
 
@@ -31,8 +37,7 @@ export class Container {
                 this.register(token, token)
             } else {
                 const tokenName = typeof token === "function" ? token.name : String(token)
-                console.error(`Token ${tokenName} not found in container`)
-                process.exit(1)
+                this.logging.fatal(`Token ${tokenName} not found in container`)
             }
         }
 
@@ -61,7 +66,7 @@ export class Container {
             return (provider as Factory<T>)(this)
         }
 
-        console.error(`Unsupported provider type for token ${String(registration.token)}`)
+        this.logging.fatal(`Unsupported provider type for token ${String(registration.token)}`)
         process.exit(1)
     }
 

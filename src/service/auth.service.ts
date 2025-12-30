@@ -7,7 +7,7 @@ import { JsonWebToken } from "@/lib/jwt"
 import { RedisClient } from "bun"
 
 @Injectable()
-export class UserService {
+export class AuthService {
 
     private readonly userRepository: UserRepository
     private readonly jsonWebToken: JsonWebToken
