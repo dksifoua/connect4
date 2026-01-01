@@ -45,11 +45,7 @@ export class UserRepository {
             .where(eq(usersTable.username, username))
             .limit(1)
 
-        if (!users[0]) {
-            throw new Error("Failed to find user!");
-        }
-
-        return users.length === 0 ? null : users[0]
+        return users.length === 0 ? null : users[0] as User
     }
 
     public async findAll(): Promise<User[]> {

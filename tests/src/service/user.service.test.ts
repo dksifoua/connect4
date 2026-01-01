@@ -2,13 +2,13 @@ import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test"
 import { Container } from "@/lib/ioc/container"
 import { UserService } from "@/service/user.service"
 import { UserRepository } from "@/repository/user.repository"
-import type { ClassMethods } from "../utils/types"
+import type { MockedClass } from "../utils/types"
 import type { User } from "@/domain"
 
 describe("UserService", () => {
     let container: Container
     let userService: UserService
-    let userRepository: Pick<ClassMethods<UserRepository>, "findAll">
+    let userRepository: Pick<MockedClass<UserRepository>, "findAll">
 
     beforeEach(() => {
         container = new Container()
@@ -18,7 +18,7 @@ describe("UserService", () => {
                 { id: 2, username: "bob", password: "hashed_password" }
             ])
         }
-        container.register(UserRepository, () => userRepository)
+        container.register(UserRepository, () => userRepository as any)
         userService = container.resolve(UserService)
     })
 
