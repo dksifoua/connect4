@@ -11,12 +11,12 @@ export class Board {
         this.n_rows = n_rows
         this.n_cols = n_cols
 
-        this.gridCells = Array.from({ length: n_cols }, () => Array(n_rows).fill(""))
+        this.gridCells = Array.from({ length: n_cols }, (): Cell[] => Array<Cell>(n_rows).fill("-"))
         this.emptyRowIndexes = Array(n_cols).fill(n_rows - 1)
     }
 
     public isFull(column?: number): boolean {
-        if (!column) {
+        if (column === undefined) {
             for (let col = 0; col < this.n_cols; col++) {
                 if (!this.isFull(col)) {
                     return false
@@ -69,7 +69,7 @@ export class Board {
 
     private checkVerticalWin(marker: Marker): boolean {
         for (let row = 0; row < this.n_rows; row++) {
-            for (let col = 0; col <= this.n_cols - 3; col++) {
+            for (let col = 0; col <= this.n_cols - 4; col++) {
                 if (
                     marker === this.gridCells[col]![row]
                     && marker === this.gridCells[col + 1]![row]
