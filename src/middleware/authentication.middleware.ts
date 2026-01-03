@@ -1,8 +1,9 @@
 import type { Nullable } from "@/utils/types"
-import type { BunRequest } from "bun"
 import { Inject, Injectable } from "@/lib/ioc/dependency"
 import { JsonWebToken } from "@/lib/jwt"
 import type { Middleware } from "@/middleware/middleware"
+import type { BunRequest } from "bun"
+import { extractAuthorizationHeader } from "@/utils/http"
 
 @Injectable()
 export class AuthenticationMiddleware implements Middleware {
@@ -15,13 +16,7 @@ export class AuthenticationMiddleware implements Middleware {
     }
 
     public async handle(request: BunRequest): Promise<Nullable<Response>> {
-        const authorizationHeader: Nullable<string> = request.headers.get("Authorization")
-
-        let token: Nullable<string> = null
-        if (authorizationHeader && authorizationHeader.startsWith("Bearer ")) {
-            token = authorizationHeader.slice(7)
-        }
-
+        const token: Nullable<string> = await extractAuthorizationHeader(request)
         if (!token) {
             return new Response(JSON.stringify({ error: "Unauthorized: No token provided" }), { status: 401 })
         }

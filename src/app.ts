@@ -6,6 +6,7 @@ import { Pool } from "pg"
 import { drizzle } from "drizzle-orm/node-postgres"
 import { RedisClient } from "bun"
 import type { NodePgDatabase } from "drizzle-orm/node-postgres/driver"
+import { Logging } from "@/lib/logging"
 
 export const container = new Container()
 
@@ -24,20 +25,24 @@ container.register(RedisClient, () => {
     return redisClient
 })
 
-process.on("SIGINT", async (): Promise<void> => {
-    console.log("\nReceived SIGINT, shutting down gracefully...")
+const logging = new Logging("App", "info")
+
+async function shutdown(): Promise<void> {
+    logging.info("Shutting down gracefully...")
 
     const database = container.resolve("database") as NodePgDatabase & { $client: Pool }
     await database.$client.end()
-    console.log("Closing database connection...")
+    logging.info("Closing database connection...")
 
     const redis = container.resolve(RedisClient)
     redis.close()
-    console.log("Closing Redis connection...")
+    logging.info("Closing Redis connection...")
 
     container.dispose()
-    console.log("Cleaning up IoC container...")
+    logging.info("Cleaning up IoC container...")
 
-    console.log("Done.")
+    logging.info("Done.")
     process.exit(0)
-})
+}
+
+process.on("SIGINT", shutdown)

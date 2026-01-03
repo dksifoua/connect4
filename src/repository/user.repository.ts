@@ -32,7 +32,7 @@ export class UserRepository {
             .returning({ userId: usersTable.id })
 
         if (!rows[0]) {
-            throw new Error("Failed to save user!");
+            throw new Error(`Failed to save user with username: ${username}.`);
         }
 
         return { userId: rows[0].userId }
@@ -45,7 +45,11 @@ export class UserRepository {
             .where(eq(usersTable.username, username))
             .limit(1)
 
-        return users.length === 0 ? null : users[0] as User
+        if (!users[0]) {
+            throw new Error(`Failed to find user with username: ${username}.`);
+        }
+
+        return users.length === 0 ? null : users[0]
     }
 
     public async findAll(): Promise<User[]> {

@@ -16,7 +16,8 @@
     "compose:down": "docker compose down",
     "orm:generate": "bunx drizzle-kit generate",
     "orm:migrate": "bunx drizzle-kit migrate",
-    "dev": "bun --watch --env-file=.env run src/server.ts"
+    "dev": "bun --watch --env-file=.env run src/server.ts",
+    "clean": "rm -rf coverage/ drizzle/"
   },
   "devDependencies": {
     "@types/bun": "latest",
