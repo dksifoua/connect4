@@ -4,7 +4,6 @@ import { UserHandler } from "@/handler/user.handler"
 import config from "@/config"
 import { container } from "@/app"
 import { Logging } from "@/lib/logging"
-import { Game } from "@/lib/connect4/game"
 import type { WebSocketServerData } from "@/websocket"
 import { WebSocketHandler } from "@/handler/websocket.handler"
 import { DefaultHandler } from "@/handler/default.handler"
@@ -15,8 +14,6 @@ const defaultHandler = container.resolve(DefaultHandler)
 const authHandler = container.resolve(AuthHandler)
 const userHandler = container.resolve(UserHandler)
 const websocketHandler = container.resolve(WebSocketHandler)
-
-const games: Map<number, Game> = new Map<number, Game>()
 
 const server: Server<WebSocketServerData> = Bun.serve({
     port: config.server.port,

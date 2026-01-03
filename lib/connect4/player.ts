@@ -20,4 +20,8 @@ export class Player implements Observer<Board> {
     public setMarker(marker: Marker): void {
         this.marker = marker
     }
+
+    public getName(): string {
+        return this.name
+    }
 }

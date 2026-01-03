@@ -16,6 +16,10 @@ export class DefaultHandler {
 
     public constructor() {
         this.logging = new Logging("DefaultHandler", "info")
+
+        this.home = this.home.bind(this)
+        this.version = this.version.bind(this)
+        this.fetch = this.fetch.bind(this)
     }
 
     public async home(): Promise<Response> {

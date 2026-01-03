@@ -31,7 +31,7 @@ ws.addEventListener("open", async (event: Event): Promise<void> => {
 })
 
 ws.addEventListener("message", async (event: BunMessageEvent<any>): Promise<void> => {
-    logging.info(`Received message: ${event.data}`)
+    logging.info(`${event.data}`)
 })
 
 ws.addEventListener("close", async (event: CloseEvent): Promise<void> => {
@@ -46,14 +46,16 @@ for await (const line of console) {
 
     try {
         const lineParts = line.trim().split(' ')
-        switch (true) {
-            case lineParts.length === 1:
-                const message: Message = MessageSchema.parse({ "type": lineParts[0] })
-                ws.send(JSON.stringify(message))
-                break
-            default:
-                throw new Error()
-        }
+        const type = lineParts[0] as string
+        const payload = lineParts[1] ? Object.fromEntries(
+                    lineParts[1]!.split(',').map(pair => {
+                        const [key, value] = pair.split(':')
+                        return [key, value]
+                    })
+                ) : undefined
+
+        const message: Message = MessageSchema.parse({ type, payload })
+        ws.send(JSON.stringify(message))
     } catch (error) {
         if (error instanceof z.ZodError) {
             logging.error(`Failed to parse message: ${z.prettifyError(error)}`)

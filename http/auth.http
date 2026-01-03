@@ -7,12 +7,53 @@ Content-Type: application/json
     "password": "Password123"
 }
 
+
+### Register Elsa
+POST http://localhost:3000/register
+Content-Type: application/json
+
+{
+  "username": "Elsa",
+  "password": "Password123"
+}
+
+
+### Register Brice
+POST http://localhost:3000/register
+Content-Type: application/json
+
+{
+  "username": "Brice",
+  "password": "Password123"
+}
+
+
 ### Login Dimitri
 POST http://localhost:3000/login
 Content-Type: application/json
 
 {
   "username": "Dimitri",
+  "password": "Password123"
+}
+
+
+### Login Elsa
+POST http://localhost:3000/login
+Content-Type: application/json
+
+{
+  "username": "Elsa",
+  "password": "Password123"
+}
+
+
+### Login Brice
+POST http://localhost:3000/login
+Content-Type: application/json
+
+{
+  "username": "Brice",
   "password": "Password123"
 }
 

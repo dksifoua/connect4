@@ -6,7 +6,7 @@ export class Game implements Observable<Board> {
 
     private readonly id: number
     private readonly board: Board
-    private readonly players: Player[]
+    private readonly players: Map<string, Player>
     private currentPlayer: Nullable<Player>
     private readonly observers: Set<Observer<Board>>
 
@@ -15,33 +15,36 @@ export class Game implements Observable<Board> {
     public constructor(id: number) {
         this.id = id
         this.board = new Board(6, 7)
-        this.players = []
+        this.players = new Map<string, Player>()
         this.currentPlayer = null
         this.observers = new Set<Observer<Board>>()
 
         this.status = "waiting"
     }
 
-    public getId(): number {
-        return this.id
-    }
-
-    public join(player: Player): void {
+    public join(player: Player): { error: Nullable<string> } {
+        if (this.players.has(player.getName())) {
+            return { error: `Player with name ${player.getName()} is already in the game.` }
+        }
         if (this.status !== "waiting") {
-            throw new Error(`Game ${this.id} is full.`)
+            return { error: `Game ${this.id} is full.` }
         }
 
-        this.players.push(player)
+        this.players.set(player.getName(), player)
         this.attach(player)
 
-        if (this.players.length === 2) {
+        if (this.players.size === 2) {
             this.status = "ready"
 
-            this.players[0]!.setMarker("red")
-            this.players[1]!.setMarker("yellow")
+            const markerColorDecision: boolean = Math.random() < 0.5
+            for (const [_, player] of this.players) {
+                player.setMarker(markerColorDecision ? "red" : "yellow")
+            }
 
             this.notify()
         }
+
+        return { error: null }
     }
 
     public attach(observer: Observer<Board>): void {
@@ -54,5 +57,13 @@ export class Game implements Observable<Board> {
 
     public notify(): void {
         this.observers.forEach(observer => observer.update(this.board))
+    }
+
+    public getId(): number {
+        return this.id
+    }
+
+    public getPlayers(): Map<string, Player> {
+        return this.players
     }
 }
