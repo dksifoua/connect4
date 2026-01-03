@@ -11,10 +11,10 @@ const AuthRequestBody = z.object({
 @Injectable()
 export class AuthHandler {
 
-    private readonly userService: AuthService
+    private readonly authService: AuthService
 
-    constructor(userService: AuthService) {
-        this.userService = userService
+    constructor(authService: AuthService) {
+        this.authService = authService
 
         this.login = this.login.bind(this)
         this.register = this.register.bind(this)
@@ -23,7 +23,7 @@ export class AuthHandler {
     public async login(request: BunRequest): Promise<Response> {
         const { username, password } = z.parse(AuthRequestBody, await request.body?.json())
 
-        const { token } = await this.userService.login(username, password)
+        const { token } = await this.authService.login(username, password)
 
         return new Response(JSON.stringify({ token }), { status: 200 })
     }
@@ -31,7 +31,7 @@ export class AuthHandler {
     public async register(request: BunRequest): Promise<Response> {
         const { username, password } = z.parse(AuthRequestBody, await request.body?.json())
 
-        const { userId } = await this.userService.register(username, password)
+        const { userId } = await this.authService.register(username, password)
 
         return new Response(JSON.stringify({ userId }), { status: 201 })
     }

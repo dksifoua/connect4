@@ -1,23 +1,47 @@
 import { Board } from "@/lib/connect4/board"
 import { type Player } from "@/lib/connect4/player"
-import type { Observable, Observer } from "@/lib/connect4/type"
+import type { GameStatus, Nullable, Observable, Observer } from "@/lib/connect4/type"
 
 export class Game implements Observable<Board> {
 
-    private readonly player1: Player
-    private readonly player2: Player
-
+    private readonly id: number
     private readonly board: Board
-    private currentPlayer: Player
+    private readonly players: Player[]
+    private currentPlayer: Nullable<Player>
     private readonly observers: Set<Observer<Board>>
 
-    public constructor(player1: Player, player2: Player) {
-        this.player1 = player1
-        this.player2 = player2
+    public status: GameStatus
 
+    public constructor(id: number) {
+        this.id = id
         this.board = new Board(6, 7)
-        this.currentPlayer = player1
+        this.players = []
+        this.currentPlayer = null
         this.observers = new Set<Observer<Board>>()
+
+        this.status = "waiting"
+    }
+
+    public getId(): number {
+        return this.id
+    }
+
+    public join(player: Player): void {
+        if (this.status !== "waiting") {
+            throw new Error(`Game ${this.id} is full.`)
+        }
+
+        this.players.push(player)
+        this.attach(player)
+
+        if (this.players.length === 2) {
+            this.status = "ready"
+
+            this.players[0]!.setMarker("red")
+            this.players[1]!.setMarker("yellow")
+
+            this.notify()
+        }
     }
 
     public attach(observer: Observer<Board>): void {

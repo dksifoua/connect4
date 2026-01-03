@@ -1,10 +1,12 @@
+export type Nullable<T> = T | null
+
 export type Marker = "red" | "yellow"
 
 export type FilledCell = Marker
 export type EmptyCell = "-"
 export type Cell = FilledCell | EmptyCell
 
-export type GameStatus = "ready" | "playing" | "win" | "draw" | "pause"
+export type GameStatus = "waiting" | "ready" | "playing" | "win" | "draw" | "pause"
 
 export interface Observable<Subject> {
 

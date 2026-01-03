@@ -51,7 +51,7 @@ export class AuthService {
 
         const token: string = await this.jsonWebToken.sign(username, this.secret)
 
-        await this.redis.set(username, token, "EX", this.jsonWebToken.getExpirationTime())
+        await this.redis.set(`${username}:token`, token, "EX", this.jsonWebToken.getExpirationTime())
 
         return { token }
     }
