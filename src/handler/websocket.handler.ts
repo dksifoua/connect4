@@ -50,7 +50,7 @@ export class WebSocketHandler {
     }
 
     public async message(ws: ServerWebSocket<WebSocketServerData>, message: string): Promise<void> {
-        const { username, player } = ws.data
+        const { username } = ws.data
         this.logging.debug(`Received message from ${username}: ${message}`)
 
         const parsedMessage: Message = MessageSchema.parse(JSON.parse(message))

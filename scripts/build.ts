@@ -1,4 +1,7 @@
 import type { BuildOutput } from "bun"
+import { Logging } from "@/lib/logging"
+
+const logging = new Logging("BuildScript", "info")
 
 const result: BuildOutput = await Bun.build({
     entrypoints: ["./src/server.ts"],
@@ -13,7 +16,7 @@ const result: BuildOutput = await Bun.build({
 })
 
 if (result.success) {
-    console.log("Build successful")
+    logging.info("Build successful")
 } else {
-    console.error("Build failed")
+    logging.error("Build failed")
 }
