@@ -83,7 +83,7 @@ describe("AuthService", () => {
             const result = await authService.login("user", "correct-pass")
 
             expect(result).toEqual({ token: "mock-jwt-token" })
-            expect(redisClient.set).toHaveBeenCalledWith("user", "mock-jwt-token", "EX", 3600)
+            expect(redisClient.set).toHaveBeenCalledWith("user:token", "mock-jwt-token", "EX", 3600)
         })
 
         test("should throw UserAlreadyConnectedError if user in redis", async () => {

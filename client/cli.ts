@@ -31,7 +31,11 @@ ws.addEventListener("open", async (event: Event): Promise<void> => {
 })
 
 ws.addEventListener("message", async (event: BunMessageEvent<any>): Promise<void> => {
-    logging.info(`${event.data}`)
+    const message = JSON.parse(event.data) as Message
+    if (message.type === "chat") {
+        const { from, content } = message.payload
+        logging.info(`${from}> ${content}`)
+    }
 })
 
 ws.addEventListener("close", async (event: CloseEvent): Promise<void> => {

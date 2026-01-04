@@ -1,6 +1,12 @@
 import { Injectable } from "@/lib/ioc/dependency"
 import type { ServerWebSocket } from "bun"
-import { type JoinMessagePayload, type Message, MessageSchema, type WebSocketServerData } from "@/websocket"
+import {
+    type ChatMessagePayload,
+    type JoinMessagePayload,
+    type Message,
+    MessageSchema,
+    type WebSocketServerData
+} from "@/websocket"
 import { Player } from "@/lib/connect4/player"
 import { Logging } from "@/lib/logging"
 import { Game } from "@/lib/connect4/game"
@@ -10,18 +16,23 @@ export class WebSocketHandler {
 
     private readonly logging: Logging
     private readonly games: Map<number, Game>
+    private readonly serverName: string
 
     public constructor() {
         this.logging = new Logging("WebSocketHandler", "debug")
         this.games = new Map<number, Game>()
+        this.serverName = "Server"
 
         this.open = this.open.bind(this)
         this.close = this.close.bind(this)
         this.message = this.message.bind(this)
     }
 
-    private send(ws: ServerWebSocket<WebSocketServerData>, message: string): void {
-        ws.send(`connect4@server> ${message}`)
+    private sendChatMessage(ws: ServerWebSocket<WebSocketServerData>, content: string, from: string = this.serverName): void {
+        ws.send(JSON.stringify({
+            type: "chat",
+            payload: { from, content } as ChatMessagePayload
+        } as Message))
     }
 
     public async open(ws: ServerWebSocket<WebSocketServerData>): Promise<void> {
@@ -30,7 +41,7 @@ export class WebSocketHandler {
 
         ws.data.player = new Player(username)
 
-        this.send(ws, `Welcome, ${username}.`)
+        this.sendChatMessage(ws, `Welcome, ${username}.`)
     }
 
     public async close(ws: ServerWebSocket<WebSocketServerData>): Promise<void> {
@@ -51,7 +62,7 @@ export class WebSocketHandler {
                 await this.joinGame(ws, parsedMessage.payload)
                 break
             default:
-                this.send(ws, `Invalid message type: ${parsedMessage.type}. Please use 'new' or 'join'.`)
+                this.sendChatMessage(ws, `Invalid message type: ${parsedMessage.type}. Please use 'new' or 'join'.`)
         }
     }
 
@@ -62,30 +73,30 @@ export class WebSocketHandler {
         this.games.set(game.getId(), game)
         this.logging.info(`${username} created new game with ID: ${game.getId()}`)
 
-        this.send(ws, `New game with ID ${game.getId()} created successfully. Now waiting for an opponent to start the game.`)
+        this.sendChatMessage(ws, `New game with ID ${game.getId()} created successfully. Now waiting for an opponent to start the game.`)
     }
 
     private async joinGame(ws: ServerWebSocket<WebSocketServerData>, payload: JoinMessagePayload): Promise<void> {
         const { username, player } = ws.data
         if (await this.playerInAGame(player!.getName())) {
-            this.send(ws, `You are already in a game. Please finish or leave the current game before joining another one.`)
+            this.sendChatMessage(ws, "You are already in a game. Please finish or leave the current game before joining another one.")
             return
         }
 
         const { id } = payload
         const game = this.games.get(id)
         if (!game) {
-            this.send(ws, `Game with ID ${id} not found. Please try again with a valid game ID.`)
+            this.sendChatMessage(ws, `Game with ID ${id} not found. Please try again with a valid game ID.`)
             return
         }
         const { error } = game.join(player!)
         if (error) {
-            this.send(ws, `Error: ${error}`)
+            this.sendChatMessage(ws, `Error: ${error}`)
             return
         }
         this.logging.info(`${username} joined game with ID: ${id}`)
 
-        this.send(ws, `Joined game with ID ${id}.`)
+        this.sendChatMessage(ws, `Joined game with ID ${id}.`)
     }
 
     private async playerInAGame(name: string): Promise<boolean> {
