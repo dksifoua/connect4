@@ -7,10 +7,10 @@ export class Game implements Observable<Board> {
     private readonly id: number
     private readonly board: Board
     private readonly players: Map<string, Player>
-    private currentPlayer: Nullable<Player>
     private readonly observers: Set<Observer<Board>>
 
-    public status: GameStatus
+    private status: GameStatus
+    private currentPlayer: Nullable<Player>
 
     public constructor(id: number) {
         this.id = id
@@ -65,5 +65,9 @@ export class Game implements Observable<Board> {
 
     public getPlayers(): Map<string, Player> {
         return this.players
+    }
+
+    public getStatus(): GameStatus {
+        return this.status
     }
 }

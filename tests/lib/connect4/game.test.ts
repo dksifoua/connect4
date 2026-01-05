@@ -9,7 +9,7 @@ describe("Game", () => {
         const game = new Game(1)
 
         expect(game.getId()).toBe(1)
-        expect(game.status).toBe("waiting")
+        expect(game.getStatus()).toBe("waiting")
         expect(game.getPlayers().size).toBe(0)
     })
 
@@ -44,7 +44,7 @@ describe("Game", () => {
         const { error } = game.join(player2)
 
         expect(error).toBeNull()
-        expect(game.status).toBe("ready")
+        expect(game.getStatus()).toBe("ready")
     })
 
     it("should not allow a player to join when game status is not 'waiting'", () => {

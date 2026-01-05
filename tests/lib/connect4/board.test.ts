@@ -10,6 +10,7 @@ describe("Board", () => {
     beforeEach(() => {
         [n_rows, n_cols] = [6, 7]
         board = new Board(n_rows, n_cols)
+        console.log(board.toString())
     })
 
     test("fill(): should place marker in the correct cell and update emptyRowIndexes", () => {

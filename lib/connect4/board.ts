@@ -15,6 +15,38 @@ export class Board {
         this.emptyRowIndexes = Array(n_cols).fill(n_rows - 1)
     }
 
+    public toString(): string {
+        return this.gridCells.map(row => row.join(" ")).join("\n")
+    }
+    
+    public fromString(input: string): Board {
+        const columns = input.split("\n")
+
+        if (columns.length !== this.n_cols) {
+            throw new Error(`Invalid board format: expected ${this.n_cols} columns, got ${columns.length}`)
+        }
+
+        for (let col = 0; col < this.n_cols; col++) {
+            const cells = columns[col]!.split(" ") as Cell[]
+            if (cells.length !== this.n_rows) {
+                throw new Error(`Invalid board format: expected ${this.n_rows} rows in column ${col}, got ${cells.length}`)
+            }
+            this.gridCells[col] = cells
+        }
+
+        // Recalculate emptyRowIndexes
+        for (let col = 0; col < this.n_cols; col++) {
+            for (let row = this.n_rows - 1; row >= 0; row--) {
+                if (this.gridCells[col]![row] === "-") {
+                    this.emptyRowIndexes[col] = row
+                    break
+                }
+            }
+        }
+
+        return this
+    }
+
     public isFull(column?: number): boolean {
         if (column === undefined) {
             for (let col = 0; col < this.n_cols; col++) {

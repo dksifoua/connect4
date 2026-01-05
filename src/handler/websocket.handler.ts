@@ -78,7 +78,7 @@ export class WebSocketHandler {
 
     private async joinGame(ws: ServerWebSocket<WebSocketServerData>, payload: JoinMessagePayload): Promise<void> {
         const { username, player } = ws.data
-        if (await this.playerInAGame(player!.getName())) {
+        if (await this.isPlayerInAnyGame(player!.getName())) {
             this.sendChatMessage(ws, "You are already in a game. Please finish or leave the current game before joining another one.")
             return
         }
@@ -99,7 +99,7 @@ export class WebSocketHandler {
         this.sendChatMessage(ws, `Joined game with ID ${id}.`)
     }
 
-    private async playerInAGame(name: string): Promise<boolean> {
+    private async isPlayerInAnyGame(name: string): Promise<boolean> {
         for (const [_, game] of this.games) {
             if (game.getPlayers().has(name)) {
                 return true

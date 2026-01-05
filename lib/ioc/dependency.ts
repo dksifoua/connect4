@@ -1,3 +1,4 @@
+import "reflect-metadata"
 import type { Token } from "@/lib/ioc/types.ts"
 
 export function Injectable(token?: Token): ClassDecorator {

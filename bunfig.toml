@@ -11,4 +11,4 @@ coverageSkipTestFiles = true
 
 concurrentTestGlob = "**/*.test.ts"
 
-randomize = true
+# randomize = true
