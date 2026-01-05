@@ -6,11 +6,13 @@ export const createMockProxy = function <T extends object>(): MockProxy<T> {
     
     return new Proxy<MockProxy<T>>({} as MockProxy<T>, {
         get(_target: any, prop: string | symbol, _receiver: any): any {
-            if (!cache.has(prop)) {
-                const mockFn = jest.fn()
-                cache.set(prop, mockFn)
+            if (cache.has(prop)) {
+                return cache.get(prop)
             }
-            return cache.get(prop)
+
+            const mockFn = jest.fn()
+            cache.set(prop, mockFn)
+            return mockFn
         },
         set(_target: any, prop: string | symbol, newValue: any, _receiver: any): boolean {
             cache.set(prop, newValue)

@@ -1,46 +1,39 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test"
-import { Container } from "@/lib/ioc/container"
+import { describe, expect, it } from "bun:test"
 import { UserService } from "@/service/user.service"
 import { UserRepository } from "@/repository/user.repository"
-import type { MockProxy } from "../utils/types"
-import type { User } from "@/domain"
+import { createMockProxy } from "../utils/utils"
 
 describe("UserService", () => {
-    let container: Container
-    let userService: UserService
-    let userRepository: Pick<MockProxy<UserRepository>, "findAll">
 
-    beforeEach(() => {
-        container = new Container()
-        userRepository = {
-            findAll: mock(async (): Promise<User[]> => [
-                { id: 1, username: "alice", password: "hashed_password" },
-                { id: 2, username: "bob", password: "hashed_password" }
-            ])
-        }
-        container.register(UserRepository, () => userRepository as any)
-        userService = container.resolve(UserService)
-    })
+    const createUserServiceWithMocks = () => {
+        const userRepository = createMockProxy<UserRepository>()
 
-    afterEach(() => {
-        container.dispose()
-    })
+        const userService = new UserService(userRepository as unknown as UserRepository)
+
+        return { userService, userRepository }
+    }
 
     describe("getAll", () => {
         it("should return all users", async (): Promise<void> => {
-            const users = await userService.getAll()
-            expect(users).toHaveLength(2)
-            expect(users).toEqual([
+            const { userService, userRepository } = createUserServiceWithMocks()
+            const users = [
                 { id: 1, username: "alice", password: "hashed_password" },
                 { id: 2, username: "bob", password: "hashed_password" }
-            ])
+            ]
+            userRepository.findAll.mockResolvedValue(users)
+
+            const allUsers = await userService.getAll()
+            expect(allUsers).toHaveLength(2)
+            expect(allUsers).toEqual(users)
             expect(userRepository.findAll).toHaveBeenCalledTimes(1)
         })
 
         it("should return no users", async (): Promise<void> => {
-            userRepository.findAll = mock(async (): Promise<User[]> => [])
-            const users = await userService.getAll()
-            expect(users).toHaveLength(0)
+            const { userService, userRepository } = createUserServiceWithMocks()
+            userRepository.findAll.mockResolvedValue([])
+
+            const allUsers = await userService.getAll()
+            expect(allUsers).toHaveLength(0)
             expect(userRepository.findAll).toHaveBeenCalledTimes(1)
         })
     })
