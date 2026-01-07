@@ -9,10 +9,11 @@ export type WebSocketServerData = {
 
 const JoinMessagePayloadSchema = z.object({ id: z.coerce.number().positive() })
 const ChatMessagePayloadSchema = z.object({ from: z.string(), content: z.string() })
+const MoveMessagePayloadSchema = z.object({ index: z.number().positive() })
 export const MessageSchema = z.discriminatedUnion("type", [
     z.object({ type: z.literal("new"), payload: z.undefined() }),
     z.object({ type: z.literal("join"), payload: JoinMessagePayloadSchema }),
-    z.object({ type: z.literal("move"), payload: z.object({ columnIndex: z.number().positive() }) }),
+    z.object({ type: z.literal("move"), payload: MoveMessagePayloadSchema }),
     z.object({ type: z.literal("chat"), payload: ChatMessagePayloadSchema }),
 ])
 

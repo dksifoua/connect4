@@ -1,156 +1,120 @@
-import type { Cell, Marker } from "@/lib/connect4/type"
+import type { Cell, Move, Nullable, Observable, Observer, Position, WinResult } from "@/lib/connect4/types"
 
-export class Board {
 
-    private readonly n_rows: number
+export class Board implements Observable {
+
     private readonly n_cols: number
-    private readonly gridCells: Cell[][]
+    private readonly n_rows: number
+    private readonly cells: Cell[][]
     private readonly emptyRowIndexes: number[]
+    private readonly moves: Move[]
+    private readonly observers: Set<Observer>
 
     public constructor(n_rows: number, n_cols: number) {
         this.n_rows = n_rows
         this.n_cols = n_cols
-
-        this.gridCells = Array.from({ length: n_cols }, (): Cell[] => Array<Cell>(n_rows).fill("-"))
-        this.emptyRowIndexes = Array(n_cols).fill(n_rows - 1)
-    }
-
-    public toString(): string {
-        return this.gridCells.map(row => row.join(" ")).join("\n")
-    }
-    
-    public fromString(input: string): Board {
-        const columns = input.split("\n")
-
-        if (columns.length !== this.n_cols) {
-            throw new Error(`Invalid board format: expected ${this.n_cols} columns, got ${columns.length}`)
-        }
-
-        for (let col = 0; col < this.n_cols; col++) {
-            const cells = columns[col]!.split(" ") as Cell[]
-            if (cells.length !== this.n_rows) {
-                throw new Error(`Invalid board format: expected ${this.n_rows} rows in column ${col}, got ${cells.length}`)
-            }
-            this.gridCells[col] = cells
-        }
-
-        // Recalculate emptyRowIndexes
-        for (let col = 0; col < this.n_cols; col++) {
-            for (let row = this.n_rows - 1; row >= 0; row--) {
-                if (this.gridCells[col]![row] === "-") {
-                    this.emptyRowIndexes[col] = row
-                    break
-                }
-            }
-        }
-
-        return this
+        this.cells = Array.from({ length: n_cols }, (): Cell[] => Array<Cell>(n_rows).fill(null))
+        this.emptyRowIndexes = Array.from({ length: n_cols }, (): number => n_rows - 1)
+        this.moves = []
+        this.observers = new Set<Observer>()
     }
 
     public isFull(column?: number): boolean {
         if (column === undefined) {
-            for (let col = 0; col < this.n_cols; col++) {
-                if (!this.isFull(col)) {
-                    return false
-                }
-            }
-
-            return true
+            return this.emptyRowIndexes.every(index => index < 0)
         }
 
-        return !this.gridCells[column]!.some(cell => cell === "-")
+        if (column < 0 || column >= this.n_cols) {
+            throw new Error(`Invalid column index: ${column}`)
+        }
+
+        return this.emptyRowIndexes[column]! < 0
+
     }
 
-    public fill(column: number, marker: Marker): boolean {
-        if (column < 0 || column >= this.n_cols) {
-            throw new Error("Invalid move: column out of bounds!")
-        }
-
-        if (this.isFull(column)) {
+    public apply(move: Move): boolean {
+        const { col, marker } = move
+        if (this.isFull(col)) {
             return false
         }
 
-        const index = this.emptyRowIndexes[column]!
-        this.gridCells[column]![index] = marker
-        this.emptyRowIndexes[column]! -= 1
+        const row = this.emptyRowIndexes[col]!
+        this.cells[col]![row] = marker
+        this.emptyRowIndexes[col]! -= 1
+
+        this.moves.push({ ...move, row })
+
+        this.notify()
 
         return true
     }
 
-    public checkWin(marker: Marker): boolean {
-        return this.checkHorizontalWin(marker)
-            || this.checkVerticalWin(marker)
-            || this.checkDiagonalWin(marker)
-    }
-
-    private checkHorizontalWin(marker: Marker): boolean {
-        for (let col = 0; col < this.n_cols; col++) {
-            for (let row = this.n_rows - 1; row >= 3; row--) {
-                if (
-                    marker === this.gridCells[col]![row]
-                    && marker === this.gridCells[col]![row - 1]
-                    && marker === this.gridCells[col]![row - 2]
-                    && marker === this.gridCells[col]![row - 3]
-                ) {
-                    return true
-                }
-            }
+    public checkWin(): Nullable<WinResult> {
+        const movesLength = this.moves.length
+        if (movesLength === 0) {
+            return null
         }
-        return false
-    }
 
-    private checkVerticalWin(marker: Marker): boolean {
-        for (let row = 0; row < this.n_rows; row++) {
-            for (let col = 0; col <= this.n_cols - 4; col++) {
-                if (
-                    marker === this.gridCells[col]![row]
-                    && marker === this.gridCells[col + 1]![row]
-                    && marker === this.gridCells[col + 2]![row]
-                    && marker === this.gridCells[col + 3]![row]
-                ) {
-                    return true
-                }
+        const { col, row, marker } = this.moves[movesLength - 1]! // Last move
+        const deltas = [
+            { dY: 1, dX: 0 }, // Horizontal
+            { dY: 0, dX: 1 }, // Vertical
+            { dY: 1, dX: 1 }, // Ascending Diagonal
+            { dY: 1, dX: -1 } // Descending Diagonal
+        ]
+        for (let delta of deltas) {
+            const contiguousCells = this.getContiguousCells({ col, row: row! }, delta)
+            if (contiguousCells.length >= 4) {
+                return { winner: marker, line: contiguousCells }
             }
         }
 
-        return false
+        return null
     }
 
-    private checkDiagonalWin(marker: Marker): boolean {
-        return this.checkAscendingDiagonalWin(marker) || this.checkDescendingDiagonalWin(marker)
-    }
+    private getContiguousCells(position: Position, delta: { dY: number, dX: number }): Position[] {
+        const positions: Position[] = [position]
 
-    private checkAscendingDiagonalWin(marker: Marker): boolean {
-        for (let col = 0; col <= this.n_cols - 4; col++) {
-            for (let row = this.n_rows - 1; row >= 3; row--) {
-                if (
-                    marker === this.gridCells[col]![row]
-                    && marker === this.gridCells[col + 1]![row - 1]
-                    && marker === this.gridCells[col + 2]![row - 2]
-                    && marker === this.gridCells[col + 3]![row - 3]
-                ) {
-                    return true
-                }
+        const { col, row } = position
+        const marker = this.cells[col]![row]!
+
+        const { dY, dX } = delta
+
+        for (let i = 1; i < 4; i++) {
+            const nextPosition = { col: col + i * dY, row: row + i * dX }
+            if (this.isValidPosition(nextPosition) && this.cells[nextPosition.col]![nextPosition.row] === marker) {
+                positions.push(nextPosition)
+            } else {
+                break
             }
         }
 
-        return false
-    }
-
-    private checkDescendingDiagonalWin(marker: Marker): boolean {
-        for (let col = 0; col <= this.n_cols - 4; col++) {
-            for (let row = 0; row <= this.n_rows - 4; row++) {
-                if (
-                    marker === this.gridCells[col]![row]
-                    && marker === this.gridCells[col + 1]![row + 1]
-                    && marker === this.gridCells[col + 2]![row + 2]
-                    && marker === this.gridCells[col + 3]![row + 3]
-                ) {
-                    return true
-                }
+        for (let i = 1; i < 4; i++) {
+            const prevPosition = { col: col - i * dY, row: row - i * dX } // Backward: <- Right to Left
+            if (this.isValidPosition(prevPosition) && this.cells[prevPosition.col]![prevPosition.row] === marker) {
+                positions.push(prevPosition)
+            } else {
+                break
             }
         }
 
-        return false
+        return positions
+    }
+
+    private isValidPosition(position: Position): boolean {
+        const { col, row } = position
+        return col >= 0 && col < this.n_cols && row >= 0 && row < this.n_rows
+    }
+
+    public attach(observer: Observer): void {
+        this.observers.add(observer)
+    }
+
+    public detach(observer: Observer): void {
+        this.observers.delete(observer)
+    }
+
+    public notify(): void {
+        this.observers.forEach(observer => observer.update(this))
     }
 }
