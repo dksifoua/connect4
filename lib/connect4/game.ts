@@ -1,4 +1,4 @@
-import type { GameStatus, GameUpdate, Marker, Observable, Observer } from "@/lib/connect4/types"
+import type { GameStatus, GameUpdate, Marker, Nullable, Observable, Observer, WinResult } from "@/lib/connect4/types"
 import { Board } from "@/lib/connect4/board"
 import { type Player } from "@/lib/connect4/player"
 
@@ -10,6 +10,8 @@ export class Game implements Observable<GameUpdate> {
     private readonly players: Map<string, Player>
     private readonly observers: Set<Observer<GameUpdate>>
 
+    private winResult: Nullable<WinResult>
+
     private readonly markers: Set<Marker>
 
     public constructor(id: number, n_rows: number = 6, n_cols: number = 7) {
@@ -18,6 +20,8 @@ export class Game implements Observable<GameUpdate> {
         this.status = "waiting"
         this.players = new Map<string, Player>()
         this.observers = new Set<Observer<GameUpdate>>()
+
+        this.winResult = null
 
         this.markers = new Set<Marker>(["red", "yellow"])
     }
@@ -68,11 +72,21 @@ export class Game implements Observable<GameUpdate> {
             return { error: `Invalid move. Please try again.` }
         }
 
+        this.winResult = this.board.checkWin()
+        if (this.winResult || this.board.isFull()) {
+            this.status = "finished"
+            return {}
+        }
+
         this.players.forEach(player => {
             player.setIsTurn(!player.getIsTurn())
         })
 
         return {}
+    }
+
+    public getOpponent(player: Player): Player {
+        return Array.from(this.players.values()).find(p => p !== player)!
     }
 
     public attach(observer: Observer<GameUpdate>): void {
@@ -105,5 +119,9 @@ export class Game implements Observable<GameUpdate> {
 
     public getBoard(): Board {
         return this.board
+    }
+
+    public getWinResult(): Nullable<WinResult> {
+        return this.winResult
     }
 }

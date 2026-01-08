@@ -16,7 +16,10 @@ const MoveMessagePayloadSchema = z.object({
 const UpdateMessagePayloadSchema = z.object({
     id: z.coerce.number().nonnegative(),
     grid: BoardGridSchema,
-    isTurn: z.boolean()
+    isTurn: z.boolean(),
+    opponent: z.string(),
+    status: z.union([z.literal("waiting"), z.literal("ready"), z.literal("playing"), z.literal("pause"), z.literal("finished")]),
+    winner: z.string().optional()
 })
 export const MessageSchema = z.discriminatedUnion("type", [
     z.object({ type: z.literal("new"), payload: z.undefined() }),

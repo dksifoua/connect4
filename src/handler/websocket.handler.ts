@@ -1,7 +1,6 @@
 import { Injectable } from "@/lib/ioc/dependency"
 import type { ServerWebSocket } from "bun"
 import {
-    type BoardGrid,
     type ChatMessagePayload,
     type JoinMessagePayload,
     type Message,
@@ -40,10 +39,21 @@ export class WebSocketHandler {
         } as Message))
     }
 
-    private sendUpdateMessage(ws: ServerWebSocket<WebSocketServerData>, id: number, grid: BoardGrid, isTurn: boolean): void {
+    private sendUpdateMessage(ws: ServerWebSocket<WebSocketServerData>, game: Game, player: Player): void {
+        const winner = game.getWinResult()
+            ? game.getPlayers().values().find(p => p.getMarker() === game.getWinResult()!.winner)!.getName()
+            : undefined
+
         ws.send(JSON.stringify({
             type: "update",
-            payload: { id, grid, isTurn } as UpdateMessagePayload
+            payload: {
+                id: game.getId(),
+                grid: game.getBoard().getGrid(),
+                isTurn: player.getIsTurn(),
+                opponent: game.getOpponent(player).getName(),
+                status: game.getStatus(),
+                winner
+            } as UpdateMessagePayload
         } as Message))
     }
 
@@ -119,7 +129,7 @@ export class WebSocketHandler {
                 const session = this.sessions.get(p.getName())!
                 // TODO
                 //  What happens when the session is undefined
-                this.sendUpdateMessage(session!, game.getId(), game.getBoard().getGrid(), p.getIsTurn())
+                this.sendUpdateMessage(session!, game, p)
             })
             game.setStatus("playing")
         } else {
@@ -155,8 +165,15 @@ export class WebSocketHandler {
             const session = this.sessions.get(p.getName())!
             // TODO
             //  What happens when the session is undefined
-            this.sendUpdateMessage(session, game.getId(), game.getBoard().getGrid(), p.getIsTurn())
+            this.sendUpdateMessage(session, game, p)
         })
+
+        if (game.getStatus() === "finished") {
+            // TODO
+            //  Save the game
+            this.games.delete(id)
+            return
+        }
     }
 
     private async isPlayerInAnyGame(name: string): Promise<boolean> {
