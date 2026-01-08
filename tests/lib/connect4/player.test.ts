@@ -10,8 +10,8 @@ describe("Player", () => {
     })
 
     it("should update the board when update is called", () => {
-        const player = new Player("Bob")
         const board = new Board(6, 7)
+        const player = new Player("Bob")
 
         player.update(board)
         expect(player["board"]).toBe(board)
@@ -19,7 +19,6 @@ describe("Player", () => {
 
     it("should set the player's marker when setMarker is called", () => {
         const player = new Player("Charlie")
-        player.setMarker("red")
 
         expect(player["marker"]).toBe("red")
     })

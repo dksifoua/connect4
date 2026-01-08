@@ -1,14 +1,12 @@
-import type { Cell, Move, Nullable, Observable, Observer, Position, WinResult } from "@/lib/connect4/types"
+import type { Cell, Move, Nullable, Position, WinResult } from "@/lib/connect4/types"
 
-
-export class Board implements Observable {
+export class Board {
 
     private readonly n_cols: number
     private readonly n_rows: number
     private readonly cells: Cell[][]
     private readonly emptyRowIndexes: number[]
     private readonly moves: Move[]
-    private readonly observers: Set<Observer>
 
     public constructor(n_rows: number, n_cols: number) {
         this.n_rows = n_rows
@@ -16,7 +14,6 @@ export class Board implements Observable {
         this.cells = Array.from({ length: n_cols }, (): Cell[] => Array<Cell>(n_rows).fill(null))
         this.emptyRowIndexes = Array.from({ length: n_cols }, (): number => n_rows - 1)
         this.moves = []
-        this.observers = new Set<Observer>()
     }
 
     public isFull(column?: number): boolean {
@@ -44,8 +41,6 @@ export class Board implements Observable {
 
         this.moves.push({ ...move, row })
 
-        this.notify()
-
         return true
     }
 
@@ -70,6 +65,10 @@ export class Board implements Observable {
         }
 
         return null
+    }
+
+    public getGrid(): Cell[][] {
+        return this.cells
     }
 
     private getContiguousCells(position: Position, delta: { dY: number, dX: number }): Position[] {
@@ -104,17 +103,5 @@ export class Board implements Observable {
     private isValidPosition(position: Position): boolean {
         const { col, row } = position
         return col >= 0 && col < this.n_cols && row >= 0 && row < this.n_rows
-    }
-
-    public attach(observer: Observer): void {
-        this.observers.add(observer)
-    }
-
-    public detach(observer: Observer): void {
-        this.observers.delete(observer)
-    }
-
-    public notify(): void {
-        this.observers.forEach(observer => observer.update(this))
     }
 }

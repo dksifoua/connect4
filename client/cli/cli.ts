@@ -3,6 +3,7 @@ import { Logging } from "@/lib/logging"
 import { z } from "zod"
 import { type Message, MessageSchema } from "@/websocket"
 import type { BunMessageEvent } from "bun"
+import { render } from "./utils"
 
 const logging = new Logging("Connect4ClientCli", "info")
 
@@ -36,10 +37,16 @@ ws.addEventListener("message", async (event: BunMessageEvent<any>): Promise<void
         const { from, content } = message.payload
         logging.info(`${from}> ${content}`)
     }
+    if (message.type === "update") {
+        const { id, grid, isTurn } = message.payload
+        logging.info(`Received update for game ${id}: \n${render(grid)}`)
+        logging.info(`Is your turn: ${isTurn}`)
+    }
 })
 
 ws.addEventListener("close", async (event: CloseEvent): Promise<void> => {
     logging.info(`WebSocket connection closed with code ${event.code}`)
+    process.exit(0)
 })
 
 for await (const line of console) {
@@ -52,11 +59,11 @@ for await (const line of console) {
         const lineParts = line.trim().split(' ')
         const type = lineParts[0] as string
         const payload = lineParts[1] ? Object.fromEntries(
-                    lineParts[1]!.split(',').map(pair => {
-                        const [key, value] = pair.split(':')
-                        return [key, value]
-                    })
-                ) : undefined
+            lineParts[1]!.split(',').map(pair => {
+                const [key, value] = pair.split(':')
+                return [key, value]
+            })
+        ) : undefined
 
         const message: Message = MessageSchema.parse({ type, payload })
         ws.send(JSON.stringify(message))
