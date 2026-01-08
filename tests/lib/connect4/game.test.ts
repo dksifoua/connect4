@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test"
 import { Game } from "@/lib/connect4/game"
 import { Player } from "@/lib/connect4/player"
+import type { Board } from "@/lib/connect4/board"
 
 describe("Game", () => {
 
@@ -63,32 +64,17 @@ describe("Game", () => {
             expect(error).toBe(`Game ${game.getId()} is full. Player ${player3.getName()} cannot join.`)
             expect(game.getPlayers().size).toBe(2)
         })
+
+
+        it("should notify all observers when the game status changes", () => {
+            const game = new Game(1)
+            const player1 = new Player("Alice")
+            const player2 = new Player("Bob")
+
+            game.join(player1)
+            game.join(player2)
+
+            expect(game.getBoard()).toEqual(<Board>player1.getBoard())
+        })
     })
-
-    /*
-    it("should notify all observers when the game status changes", () => {
-        const game = new Game(1)
-        const player1 = new Player("Alice")
-        const player2 = new Player("Bob")
-        const mockObserver = { update: jest.fn() }
-
-        game.attach(mockObserver)
-        game.join(player1)
-        game.join(player2)
-
-        expect(mockObserver.update).toHaveBeenCalledWith(expect.any(Board))
-    })
-
-    it("should allow observer detachment", () => {
-        const game = new Game(1)
-        const mockObserver = { update: jest.fn() }
-
-        game.attach(mockObserver)
-        game.detach(mockObserver)
-        game.notify()
-
-        expect(mockObserver.update).not.toHaveBeenCalled()
-    })
-    */
-
 })

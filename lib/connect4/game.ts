@@ -26,11 +26,18 @@ export class Game implements Observer {
         }
 
         this.players.set(player.getName(), player)
+        this.board.attach(player)
+
         if (this.players.size === 2) {
             this.status = "ready"
+            this.board.notify()
         }
 
         return {}
+    }
+
+    public update(subject: Observable): void {
+        throw new Error("Method not implemented.");
     }
 
     public getId(): number {
@@ -45,7 +52,7 @@ export class Game implements Observer {
         return this.players
     }
 
-    public update(subject: Observable): void {
-        throw new Error("Method not implemented.");
+    public getBoard(): Board {
+        return this.board
     }
 }

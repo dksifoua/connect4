@@ -3,7 +3,7 @@ import { Board } from "@/lib/connect4/board"
 
 export class Player implements Observer {
 
-    private readonly name
+    private readonly name: string
     private readonly marker: Marker
     private board: Nullable<Board>
 
@@ -21,5 +21,9 @@ export class Player implements Observer {
 
     public getName(): string {
         return this.name
+    }
+
+    public getBoard(): Nullable<Board> {
+        return this.board
     }
 }
