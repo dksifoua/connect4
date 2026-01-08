@@ -6,6 +6,7 @@ import {
     type JoinMessagePayload,
     type Message,
     MessageSchema,
+    type MoveMessagePayload,
     type UpdateMessagePayload,
     type WebSocketServerData
 } from "@/websocket"
@@ -50,7 +51,6 @@ export class WebSocketHandler {
         const { username } = ws.data
         this.logging.info(`WebSocket connection opened for the user: ${username}.`)
 
-        ws.data.player = new Player(username)
         this.sessions.set(username, ws)
 
         this.sendChatMessage(ws, `Welcome, ${username}.`)
@@ -58,6 +58,7 @@ export class WebSocketHandler {
 
     public async close(ws: ServerWebSocket<WebSocketServerData>): Promise<void> {
         const { username } = ws.data
+        this.sessions.delete(username)
         this.logging.info(`WebSocket connection closed for the user: ${username}.`)
     }
 
@@ -73,15 +74,20 @@ export class WebSocketHandler {
             case "join":
                 await this.joinGame(ws, parsedMessage.payload)
                 break
+            case "move":
+                await this.makeMove(ws, parsedMessage.payload)
+                break
             default:
                 this.sendChatMessage(ws, `Invalid message type: ${parsedMessage.type}. Please use 'new' or 'join'.`)
         }
     }
 
     private async newGame(ws: ServerWebSocket<WebSocketServerData>): Promise<void> {
-        const { username, player } = ws.data
+        const { username } = ws.data
+
         const game = new Game(Math.max(0, ...this.games.keys()) + 1)
-        game.join(player!)
+        game.join(new Player(username))
+
         this.games.set(game.getId(), game)
         this.logging.info(`${username} created new game with ID: ${game.getId()}`)
 
@@ -89,11 +95,7 @@ export class WebSocketHandler {
     }
 
     private async joinGame(ws: ServerWebSocket<WebSocketServerData>, payload: JoinMessagePayload): Promise<void> {
-        const { username, player } = ws.data
-        if (await this.isPlayerInAnyGame(player!.getName())) {
-            this.sendChatMessage(ws, "You are already in a game. Please finish or leave the current game before joining another one.")
-            return
-        }
+        const { username } = ws.data
 
         const { id } = payload
         const game = this.games.get(id)
@@ -101,9 +103,13 @@ export class WebSocketHandler {
             this.sendChatMessage(ws, `Game with ID ${id} not found. Please try again with a valid game ID.`)
             return
         }
-        const { error } = game.join(player!)
+        if (await this.isPlayerInAnyGame(username)) {
+            this.sendChatMessage(ws, "You are already in a game. Please finish or leave the current game before joining another one.")
+            return
+        }
+        const { error } = game.join(new Player(username))
         if (error) {
-            this.sendChatMessage(ws, `Error: ${error}`)
+            this.sendChatMessage(ws, `${error}`)
             return
         }
         this.logging.info(`${username} joined game with ID: ${id}`)
@@ -111,11 +117,46 @@ export class WebSocketHandler {
         if (game.getStatus() === "ready") {
             game.getPlayers().forEach(p => {
                 const session = this.sessions.get(p.getName())!
-                this.sendUpdateMessage(session, game.getId(), game.getBoard().getGrid(), p!.getIsTurn())
+                // TODO
+                //  What happens when the session is undefined
+                this.sendUpdateMessage(session!, game.getId(), game.getBoard().getGrid(), p.getIsTurn())
             })
+            game.setStatus("playing")
         } else {
             this.sendChatMessage(ws, `Joined game with ID ${id}.`)
         }
+    }
+
+    private async makeMove(ws: ServerWebSocket<WebSocketServerData>, payload: MoveMessagePayload): Promise<void> {
+        const { username } = ws.data
+
+        const { id, col } = payload
+        const game = this.games.get(id)
+        if (!game) {
+            this.sendChatMessage(ws, `Game with ID ${id} not found. Please try again with a valid game ID.`)
+            return
+        }
+        // TODO
+        //  Validate column number
+
+        const player = game.getPlayers().get(username)
+        if (player === undefined) {
+            this.sendChatMessage(ws, `You are not a player in game with ID ${id}. Please join the game before making a move.`)
+            return
+        }
+
+        const { error } = game.makeMove(col, player)
+        if (error) {
+            this.sendChatMessage(ws, `${error}`)
+            return
+        }
+
+        game.getPlayers().forEach(p => {
+            const session = this.sessions.get(p.getName())!
+            // TODO
+            //  What happens when the session is undefined
+            this.sendUpdateMessage(session, game.getId(), game.getBoard().getGrid(), p.getIsTurn())
+        })
     }
 
     private async isPlayerInAnyGame(name: string): Promise<boolean> {

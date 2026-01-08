@@ -7,7 +7,7 @@ import { render } from "./utils"
 
 const logging = new Logging("Connect4ClientCli", "info")
 
-const WEB_SOCKET_URL = "ws://localhost:3000/game"
+const WEB_SOCKET_URL = "ws://localhost:3000/connect4"
 
 const { values } = parseArgs({
     args: Bun.argv,
@@ -39,13 +39,14 @@ ws.addEventListener("message", async (event: BunMessageEvent<any>): Promise<void
     }
     if (message.type === "update") {
         const { id, grid, isTurn } = message.payload
-        logging.info(`Received update for game ${id}: \n${render(grid)}`)
-        logging.info(`Is your turn: ${isTurn}`)
+        logging.info(`server> Received update for game #${id}: \n${render(grid)}`)
+        logging.info(`server> Is your turn: ${isTurn}`)
     }
 })
 
 ws.addEventListener("close", async (event: CloseEvent): Promise<void> => {
     logging.info(`WebSocket connection closed with code ${event.code}`)
+    logging.info(`Reason: ${event.reason}`)
     process.exit(0)
 })
 

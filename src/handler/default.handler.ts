@@ -33,7 +33,7 @@ export class DefaultHandler {
 
     public async fetch(request: BunRequest, server: Server<WebSocketServerData>): Promise<Response> {
         const url = new URL(request.url)
-        if (url.pathname !== "/game") {
+        if (url.pathname !== "/connect4") {
             return new Response("Resource not found!", { status: 404 })
         }
 

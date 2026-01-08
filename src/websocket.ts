@@ -1,20 +1,20 @@
 import { z } from "zod"
-import type { Player } from "@/lib/connect4/player"
-import type { Nullable } from "@/utils/types"
 
 export type WebSocketServerData = {
     username: string
-    player: Nullable<Player>
 }
 
 export const BoardGridSchema = z.array(z.array(z.nullable(z.union([z.literal("red"), z.literal("yellow")]))))
 export type BoardGrid = z.infer<typeof BoardGridSchema>
 
-const JoinMessagePayloadSchema = z.object({ id: z.coerce.number().positive() })
+const JoinMessagePayloadSchema = z.object({ id: z.coerce.number().nonnegative() })
 const ChatMessagePayloadSchema = z.object({ from: z.string(), content: z.string() })
-const MoveMessagePayloadSchema = z.object({ column: z.number().positive() })
+const MoveMessagePayloadSchema = z.object({
+    id: z.coerce.number().nonnegative(),
+    col: z.coerce.number().nonnegative()
+})
 const UpdateMessagePayloadSchema = z.object({
-    id: z.number(),
+    id: z.coerce.number().nonnegative(),
     grid: BoardGridSchema,
     isTurn: z.boolean()
 })
@@ -29,4 +29,5 @@ export const MessageSchema = z.discriminatedUnion("type", [
 export type Message = z.infer<typeof MessageSchema>
 export type JoinMessagePayload = z.infer<typeof JoinMessagePayloadSchema>
 export type ChatMessagePayload = z.infer<typeof ChatMessagePayloadSchema>
+export type MoveMessagePayload = z.infer<typeof MoveMessagePayloadSchema>
 export type UpdateMessagePayload = z.infer<typeof UpdateMessagePayloadSchema>

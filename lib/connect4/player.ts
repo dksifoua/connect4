@@ -53,4 +53,8 @@ export class Player implements Observer<GameUpdate> {
     public getIsTurn(): boolean {
         return this.isTurn
     }
+
+    public setIsTurn(isTurn: boolean): void {
+        this.isTurn = isTurn
+    }
 }

@@ -1,4 +1,4 @@
-import type { GameStatus, GameUpdate, Marker, Nullable, Observable, Observer } from "@/lib/connect4/types"
+import type { GameStatus, GameUpdate, Marker, Observable, Observer } from "@/lib/connect4/types"
 import { Board } from "@/lib/connect4/board"
 import { type Player } from "@/lib/connect4/player"
 
@@ -8,7 +8,6 @@ export class Game implements Observable<GameUpdate> {
     private readonly board: Board
     private status: GameStatus
     private readonly players: Map<string, Player>
-    private currentPlayerName: Nullable<string>
     private readonly observers: Set<Observer<GameUpdate>>
 
     private readonly markers: Set<Marker>
@@ -18,7 +17,6 @@ export class Game implements Observable<GameUpdate> {
         this.board = new Board(n_rows, n_cols)
         this.status = "waiting"
         this.players = new Map<string, Player>()
-        this.currentPlayerName = null
         this.observers = new Set<Observer<GameUpdate>>()
 
         this.markers = new Set<Marker>(["red", "yellow"])
@@ -33,9 +31,13 @@ export class Game implements Observable<GameUpdate> {
             return { error: `Game ${this.id} is full. Player ${player.getName()} cannot join.` }
         }
 
-        const marker = Math.random() > 0.5 ? "red" : "yellow"
+        let marker: Marker
+        if (this.markers.size === 2) {
+            marker = Math.random() > 0.5 ? "red" : "yellow"
+        } else {
+            marker = this.markers.values().next().value!
+        }
         player.setMarker(marker)
-
         this.markers.delete(marker)
 
         this.players.set(player.getName(), player)
@@ -43,15 +45,32 @@ export class Game implements Observable<GameUpdate> {
 
         if (this.players.size === 2) {
             this.status = "ready"
-            this.currentPlayerName = Math.random() > 0.5
-                ? this.players.values().filter(player => player.getMarker() === "red").next().value!.getName()
-                : this.players.values().filter(player => player.getMarker() === "yellow").next().value!.getName()
             this.notify({
                 id: this.id,
                 board: this.board,
-                turn: this.currentPlayerName
+                turn: this.players.keys().toArray()[Math.random() > 0.5 ? 0 : 1]!
             })
         }
+
+        return {}
+    }
+
+    public makeMove(col: number, player: Player): { error?: string } {
+        if (this.status !== "playing") {
+            return { error: `Game ${this.id} is not in playing state.` }
+        }
+
+        if (!player.getIsTurn()) {
+            return { error: `It's not your turn. Please wait for your turn to make a move.` }
+        }
+
+        if (!this.board.apply({ col, marker: player.getMarker() })) {
+            return { error: `Invalid move. Please try again.` }
+        }
+
+        this.players.forEach(player => {
+            player.setIsTurn(!player.getIsTurn())
+        })
 
         return {}
     }
@@ -74,6 +93,10 @@ export class Game implements Observable<GameUpdate> {
 
     public getStatus(): GameStatus {
         return this.status
+    }
+
+    public setStatus(status: GameStatus): void {
+        this.status = status
     }
 
     public getPlayers(): Map<string, Player> {
