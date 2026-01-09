@@ -1,15 +1,5 @@
 import type { Board } from "@/lib/connect4/board"
 
-export interface Observable<T> {
-    attach(observer: Observer<T>): void
-    detach(observer: Observer<T>): void
-    notify(data: T): void
-}
-
-export interface Observer<T> {
-    update(data: T): void
-}
-
 export type Nullable<T> = T | null
 export type Marker = "red" | "yellow"
 export type Cell = Nullable<Marker>

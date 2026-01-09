@@ -1,29 +1,21 @@
-import type { GameStatus, GameUpdate, Marker, Nullable, Observable, Observer, WinResult } from "@/lib/connect4/types"
+import type { GameStatus, Marker, Nullable, WinResult } from "@/lib/connect4/types"
 import { Board } from "@/lib/connect4/board"
 import { type Player } from "@/lib/connect4/player"
 
-export class Game implements Observable<GameUpdate> {
+export class Game {
 
     private readonly id: number
     private readonly board: Board
     private status: GameStatus
     private readonly players: Map<string, Player>
-    private readonly observers: Set<Observer<GameUpdate>>
-
     private winResult: Nullable<WinResult>
-
-    private readonly markers: Set<Marker>
 
     public constructor(id: number, n_rows: number = 6, n_cols: number = 7) {
         this.id = id
         this.board = new Board(n_rows, n_cols)
         this.status = "waiting"
         this.players = new Map<string, Player>()
-        this.observers = new Set<Observer<GameUpdate>>()
-
         this.winResult = null
-
-        this.markers = new Set<Marker>(["red", "yellow"])
     }
 
     public join(player: Player): { error?: string } {
@@ -35,41 +27,38 @@ export class Game implements Observable<GameUpdate> {
             return { error: `Game ${this.id} is full. Player ${player.getName()} cannot join.` }
         }
 
-        let marker: Marker
-        if (this.markers.size === 2) {
-            marker = Math.random() > 0.5 ? "red" : "yellow"
-        } else {
-            marker = this.markers.values().next().value!
-        }
-        player.setMarker(marker)
-        this.markers.delete(marker)
-
+        this.setMarker(player)
         this.players.set(player.getName(), player)
-        this.attach(player)
 
         if (this.players.size === 2) {
             this.status = "ready"
-            this.notify({
-                id: this.id,
-                board: this.board,
-                turn: this.players.keys().toArray()[Math.random() > 0.5 ? 0 : 1]!
-            })
+            this.setInitialTurn()
         }
 
         return {}
     }
 
-    public makeMove(col: number, player: Player): { error?: string } {
+    public makeMove(col: number, playerName: string): { error?: string } {
         if (this.status !== "playing") {
             return { error: `Game ${this.id} is not in playing state.` }
+        }
+
+        if (!this.players.has(playerName)) {
+            return { error: `Player ${playerName} is not in the game #${this.id}.` }
+        }
+
+        const player = this.players.get(playerName)
+        if (!player) {
+            return { error: `Player ${playerName} not found in game #${this.id}.` }
         }
 
         if (!player.getIsTurn()) {
             return { error: `It's not your turn. Please wait for your turn to make a move.` }
         }
 
-        if (!this.board.apply({ col, marker: player.getMarker() })) {
-            return { error: `Invalid move. Please try again.` }
+        const { error } = this.board.apply({ col, marker: player.getMarker() })
+        if (error) {
+            return { error }
         }
 
         this.winResult = this.board.checkWin()
@@ -78,27 +67,38 @@ export class Game implements Observable<GameUpdate> {
             return {}
         }
 
-        this.players.forEach(player => {
-            player.setIsTurn(!player.getIsTurn())
-        })
+        this.players.forEach(player => player.setIsTurn(!player.getIsTurn()))
 
         return {}
     }
 
+    private setMarker(player: Player): void {
+        let marker: Marker
+        if (this.players.size === 0) {
+            marker = Math.random() > 0.5 ? "red" : "yellow"
+        } else {
+            marker = this.players.values().toArray()[0]!.getMarker() === "red" ? "yellow" : "red"
+        }
+        console.log({ marker })
+
+        player.setMarker(marker)
+    }
+
+    private setInitialTurn(): void {
+        if (this.players.size !== 2) return
+
+        const playerNames = this.players.keys().toArray()
+
+        const flipCoin = Math.random() > 0.5
+        const firstPlayerName = flipCoin ? playerNames[0]! : playerNames[1]!
+        const secondPlayerName = flipCoin ? playerNames[1]! : playerNames[0]!
+
+        this.players.get(firstPlayerName)!.setIsTurn(true)
+        this.players.get(secondPlayerName)!.setIsTurn(false)
+    }
+
     public getOpponent(player: Player): Player {
         return Array.from(this.players.values()).find(p => p !== player)!
-    }
-
-    public attach(observer: Observer<GameUpdate>): void {
-        this.observers.add(observer)
-    }
-
-    public detach(observer: Observer<GameUpdate>): void {
-        this.observers.delete(observer)
-    }
-
-    public notify(data: GameUpdate): void {
-        this.observers.forEach(observer => observer.update(data))
     }
 
     public getId(): number {

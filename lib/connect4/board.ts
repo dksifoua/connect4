@@ -29,10 +29,14 @@ export class Board {
 
     }
 
-    public apply(move: Move): boolean {
+    public apply(move: Move): { error?: string } {
         const { col, marker } = move
-        if (this.isFull(col)) {
-            return false
+        try {
+            if (this.isFull(col)) {
+                return { error: `Column ${col} is full. Please choose another column.` }
+            }
+        } catch (error) {
+            return { error: `${error}` }
         }
 
         const row = this.emptyRowIndexes[col]!
@@ -41,7 +45,7 @@ export class Board {
 
         this.moves.push({ ...move, row })
 
-        return true
+        return {}
     }
 
     public checkWin(): Nullable<WinResult> {

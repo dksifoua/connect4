@@ -39,22 +39,37 @@ export class WebSocketHandler {
         } as Message))
     }
 
-    private sendUpdateMessage(ws: ServerWebSocket<WebSocketServerData>, game: Game, player: Player): void {
-        const winner = game.getWinResult()
-            ? game.getPlayers().values().find(p => p.getMarker() === game.getWinResult()!.winner)!.getName()
-            : undefined
+    private sentGameUpdateMessage(game: Game): void {
+        const players = game.getPlayers().values().toArray()
 
-        ws.send(JSON.stringify({
-            type: "update",
-            payload: {
-                id: game.getId(),
-                grid: game.getBoard().getGrid(),
-                isTurn: player.getIsTurn(),
-                opponent: game.getOpponent(player).getName(),
-                status: game.getStatus(),
-                winner
-            } as UpdateMessagePayload
-        } as Message))
+        const winResult = game.getWinResult()
+        let winner: string
+        if (winResult) {
+            winner = players.find(p => p.getMarker() === winResult.winner)!.getName()
+        }
+
+        players.forEach(player => {
+            const marker = game.getPlayers().get(player.getName())!.getMarker()[0]!.toUpperCase()
+            const session = this.sessions.get(player.getName())!
+            // TODO
+            //  What happens when the session is undefined
+
+            session.send(JSON.stringify({
+                type: "update",
+                payload: {
+                    id: game.getId(),
+                    grid: game.getBoard().getGrid(),
+                    player: player.getName(),
+                    marker: marker,
+                    isTurn: player.getIsTurn(),
+                    opponent: game.getOpponent(player).getName(),
+                    status: game.getStatus(),
+                    win: winner !== undefined && winner == player.getName(),
+                    lose: winner !== undefined && winner != player.getName(),
+                    draw: winner === undefined && game.getStatus() === "finished"
+                } as UpdateMessagePayload
+            } as Message))
+        })
     }
 
     public async open(ws: ServerWebSocket<WebSocketServerData>): Promise<void> {
@@ -99,41 +114,40 @@ export class WebSocketHandler {
         game.join(new Player(username))
 
         this.games.set(game.getId(), game)
-        this.logging.info(`${username} created new game with ID: ${game.getId()}`)
+        this.logging.info(`${username} created new game #${game.getId()}`)
 
-        this.sendChatMessage(ws, `New game with ID ${game.getId()} created successfully. Now waiting for an opponent to start the game.`)
+        const marker = game.getPlayers().get(username)!.getMarker()[0]!.toUpperCase()
+        this.sendChatMessage(ws, `New game #${game.getId()} - [${marker}] created successfully. Now waiting for an opponent to start the game.`)
     }
 
     private async joinGame(ws: ServerWebSocket<WebSocketServerData>, payload: JoinMessagePayload): Promise<void> {
         const { username } = ws.data
-
-        const { id } = payload
-        const game = this.games.get(id)
-        if (!game) {
-            this.sendChatMessage(ws, `Game with ID ${id} not found. Please try again with a valid game ID.`)
-            return
-        }
         if (await this.isPlayerInAnyGame(username)) {
             this.sendChatMessage(ws, "You are already in a game. Please finish or leave the current game before joining another one.")
             return
         }
+
+        const { id } = payload
+
+        const game = this.games.get(id)
+        if (!game) {
+            this.sendChatMessage(ws, `Game #${id} not found. Please try again with a valid game ID.`)
+            return
+        }
+
         const { error } = game.join(new Player(username))
         if (error) {
             this.sendChatMessage(ws, `${error}`)
             return
         }
-        this.logging.info(`${username} joined game with ID: ${id}`)
+        this.logging.info(`${username} joined game #${id}`)
 
         if (game.getStatus() === "ready") {
-            game.getPlayers().forEach(p => {
-                const session = this.sessions.get(p.getName())!
-                // TODO
-                //  What happens when the session is undefined
-                this.sendUpdateMessage(session!, game, p)
-            })
+            this.sentGameUpdateMessage(game)
             game.setStatus("playing")
         } else {
-            this.sendChatMessage(ws, `Joined game with ID ${id}.`)
+            const marker = game.getPlayers().get(username)!.getMarker()[0]!.toUpperCase()
+            this.sendChatMessage(ws, `Joined game #${id} - [${marker}].`)
         }
     }
 
@@ -143,30 +157,17 @@ export class WebSocketHandler {
         const { id, col } = payload
         const game = this.games.get(id)
         if (!game) {
-            this.sendChatMessage(ws, `Game with ID ${id} not found. Please try again with a valid game ID.`)
-            return
-        }
-        // TODO
-        //  Validate column number
-
-        const player = game.getPlayers().get(username)
-        if (player === undefined) {
-            this.sendChatMessage(ws, `You are not a player in game with ID ${id}. Please join the game before making a move.`)
+            this.sendChatMessage(ws, `Game #${id} not found. Please try again with a valid game ID.`)
             return
         }
 
-        const { error } = game.makeMove(col, player)
+        const { error } = game.makeMove(col, username)
         if (error) {
             this.sendChatMessage(ws, `${error}`)
             return
         }
 
-        game.getPlayers().forEach(p => {
-            const session = this.sessions.get(p.getName())!
-            // TODO
-            //  What happens when the session is undefined
-            this.sendUpdateMessage(session, game, p)
-        })
+        this.sentGameUpdateMessage(game)
 
         if (game.getStatus() === "finished") {
             // TODO

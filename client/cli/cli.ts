@@ -38,13 +38,15 @@ ws.addEventListener("message", async (event: BunMessageEvent<any>): Promise<void
         logging.info(`${from}> ${content}`)
     }
     if (message.type === "update") {
-        const { id, grid, isTurn, opponent, status, winner } = message.payload
-        logging.info(`server> Received update for game #${id}: \n${render(grid)}`)
+        const { id, grid, player, marker, isTurn, opponent, status, win, lose, draw } = message.payload
+        logging.info(`server> Received an update from the game #${id} - [${marker}]: \n${render(grid)}`)
         if (status === "finished") {
-            if (winner) {
-                logging.info(`server> Winner: ${winner}`)
-            } else {
-                logging.info(`server> Draw`)
+            if (win) {
+                logging.info(`server> Game #${id} over: Victory!`)
+            } else if (lose) {
+                logging.info(`server> Game #${id} over: Defeat!`)
+            } else if (draw) {
+                logging.info(`server> Game #${id} over: Draw!`)
             }
         } else {
             logging.info(`server> Is your turn: ${isTurn}`)
