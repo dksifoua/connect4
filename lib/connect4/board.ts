@@ -22,7 +22,7 @@ export class Board {
         }
 
         if (column < 0 || column >= this.n_cols) {
-            throw new Error(`Invalid column index: ${column}`)
+            throw new Error(`Invalid column index: ${column}.`)
         }
 
         return this.emptyRowIndexes[column]! < 0

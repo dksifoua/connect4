@@ -31,8 +31,8 @@ export class Game {
         this.players.set(player.getName(), player)
 
         if (this.players.size === 2) {
-            this.status = "ready"
             this.setInitialTurn()
+            this.status = "playing"
         }
 
         return {}
@@ -43,13 +43,9 @@ export class Game {
             return { error: `Game ${this.id} is not in playing state.` }
         }
 
-        if (!this.players.has(playerName)) {
-            return { error: `Player ${playerName} is not in the game #${this.id}.` }
-        }
-
-        const player = this.players.get(playerName)
+        const player = this.players.get(playerName)!
         if (!player) {
-            return { error: `Player ${playerName} not found in game #${this.id}.` }
+            return { error: `Player ${playerName} is not in the game #${this.id}.` }
         }
 
         if (!player.getIsTurn()) {
@@ -79,7 +75,6 @@ export class Game {
         } else {
             marker = this.players.values().toArray()[0]!.getMarker() === "red" ? "yellow" : "red"
         }
-        console.log({ marker })
 
         player.setMarker(marker)
     }
@@ -107,10 +102,6 @@ export class Game {
 
     public getStatus(): GameStatus {
         return this.status
-    }
-
-    public setStatus(status: GameStatus): void {
-        this.status = status
     }
 
     public getPlayers(): Map<string, Player> {

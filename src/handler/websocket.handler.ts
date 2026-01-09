@@ -142,9 +142,8 @@ export class WebSocketHandler {
         }
         this.logging.info(`${username} joined game #${id}`)
 
-        if (game.getStatus() === "ready") {
+        if (game.getStatus() === "playing") {
             this.sentGameUpdateMessage(game)
-            game.setStatus("playing")
         } else {
             const marker = game.getPlayers().get(username)!.getMarker()[0]!.toUpperCase()
             this.sendChatMessage(ws, `Joined game #${id} - [${marker}].`)

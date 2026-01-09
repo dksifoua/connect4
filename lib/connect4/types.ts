@@ -8,7 +8,7 @@ export type Move = { col: number, marker: Marker, row?: number }
 export type Position = { row: number, col: number }
 export type WinResult = { winner: Marker, line: Position[] }
 
-export type GameStatus = "waiting" | "ready" | "playing"| "pause" | "finished"
+export type GameStatus = "waiting" | "playing"| "pause" | "finished"
 export type GameUpdate = {
     id: number
     board: Board

@@ -1,54 +1,27 @@
-import { beforeEach, describe, expect, it, jest } from "bun:test"
+import { beforeEach, describe, expect, it } from "bun:test"
 import { Board } from "@/lib/connect4/board"
-import type { Marker, Move, Observer } from "@/lib/connect4/types"
+import type { Marker, Move } from "@/lib/connect4/types"
 
 describe("Board", () => {
     let n_cols: number
     let n_rows: number
     let board: Board
-    let observer: Observer
 
     beforeEach(() => {
         [n_cols, n_rows] = [7, 6]
         board = new Board(n_rows, n_cols)
-        observer = { update: jest.fn() }
     })
 
     describe("apply", () => {
         it("should not apply a move when the column is full", () => {
             const move: Move = { col: 0, marker: "red" }
             for (let i = 0; i < n_rows; i++) {
-                expect(board.apply(move)).toBe(true)
+                const { error } = board.apply(move)
+                expect(error).toBeUndefined()
             }
 
-            expect(board.apply(move)).toBe(false)
-        })
-    })
-
-    describe("attach", () => {
-        it("should attach an observer", () => {
-            board.attach(observer)
-            expect(board["observers"].has(observer)).toBe(true)
-        })
-    })
-
-    describe("detach", () => {
-        it("should detach an observer", () => {
-            board.detach(observer)
-            expect(board["observers"].has(observer)).toBe(false)
-            expect(board["observers"].size).toBe(0)
-        })
-    })
-
-    describe("notify", () => {
-        it("should notify all attached observers", () => {
-            const observer2 = { update: jest.fn() }
-            board.attach(observer)
-            board.attach(observer2)
-            board.notify()
-
-            expect(observer.update).toHaveBeenCalled()
-            expect(observer2.update).toHaveBeenCalled()
+            const { error } = board.apply(move)
+            expect(error).toBe(`Column ${move.col} is full. Please choose another column.`)
         })
     })
 
