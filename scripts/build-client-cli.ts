@@ -1,10 +1,10 @@
 import type { BuildOutput } from "bun"
 import { Logging } from "@/lib/logging"
 
-const logging = new Logging("BuildScript", "info")
+const logging = new Logging("BuildClientCli", "info")
 
 const result: BuildOutput = await Bun.build({
-    entrypoints: ["./src/server.ts"],
+    entrypoints: ["./client/cli/cli.ts"],
     outdir: "dist",
     target: "bun",
     format:"esm",
