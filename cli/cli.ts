@@ -27,7 +27,7 @@ const ws = new WebSocket(WEB_SOCKET_URL, {
     }
 })
 
-ws.addEventListener("open", async (event: Event): Promise<void> => {
+ws.addEventListener("open", async (): Promise<void> => {
     logging.info("WebSocket connection opened")
 })
 
@@ -38,7 +38,7 @@ ws.addEventListener("message", async (event: BunMessageEvent<any>): Promise<void
         logging.info(`${from}> ${content}`)
     }
     if (message.type === "update") {
-        const { id, grid, player, marker, isTurn, opponent, status, win, lose, draw } = message.payload
+        const { id, grid, marker, isTurn, status, win, lose, draw } = message.payload
         logging.info(`server> Received an update from the game #${id} - [${marker}]: \n${render(grid)}`)
         if (status === "finished") {
             if (win) {

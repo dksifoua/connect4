@@ -18,7 +18,9 @@
     "orm:migrate": "bunx drizzle-kit migrate",
     "dev": "bun --watch --env-file=.env run src/server.ts",
     "tests": "rm -rf coverage/ && bun test",
-    "clean": "rm -rf coverage/ drizzle/"
+    "clean": "rm -rf coverage/ drizzle/",
+    "ui:install": "cd ui && bun install",
+    "ui:dev": "cd ui && bun vite"
   },
   "devDependencies": {
     "@types/bun": "latest",
